@@ -126,7 +126,7 @@ lines = [
     ("1~2학년 통합교과와 영어는 이번 정리에서 제외했습니다.", False),
     ("", False),
     ("시트 안내", True),
-    ("1~6학년: 학년별(학기 → 교과 순) / 과목·영역별: 교과 → 영역 → 학년 → 학기 순 / 미배치 / 전체(학년군 대비): 원본 학년군 엑셀과 대조용", False),
+    ("과목·영역별: 교과 → 영역 → 학년 → 학기 순 / 내용 체계 도식: 교과별 영역 × 1~6학년 표 / 1~6학년: 학년별(학기 → 교과 순) / 미배치 / 전체(학년군 대비): 원본 학년군 엑셀과 대조용", False),
     ("", False),
     ("학년별 성취기준 수 (각 학년 시트에서 자동 집계)", True),
 ]
@@ -150,8 +150,50 @@ ws.cell(ws.max_row, 9, "← 2026 계획서에 해당 단원 없음").font = Font
 ws.column_dimensions["A"].width = 16
 for c in "BCDEFGH":
     ws.column_dimensions[c].width = 9
+# 내용 체계 도식: 교과별 영역 × 1~6학년 (build_matrix.py 결과 사용)
+import json
+mx = json.load(open(os.path.join(HERE, "matrix.json"), encoding="utf-8"))
+ws = wb.create_sheet("내용 체계 도식")
+ws.append(["학년별 내용 체계 도식 — 교과 › 영역 × 학년. 셀: [학기] 단원 (성취기준 코드). 사회·과학은 2022 개정 내용 영역으로 재분류"])
+ws.cell(1, 1).font = Font(name=FONT, bold=True, size=12)
+BAND_FILL = {1: "F3F7F5", 2: "F3F7F5", 3: "FFFFFF", 4: "FFFFFF", 5: "F6F3FA", 6: "F6F3FA"}
+for S in mx["subjects"]:
+    ws.append([])
+    hr = ws.max_row + 1
+    ws.append([f"{S['name']} ({S['count']}개)"] + [f"{g}학년" for g in range(1, 7)])
+    for c in ws[hr]:
+        c.font, c.fill, c.border, c.alignment = HEAD_FONT, HEAD_FILL, GRID, Alignment(vertical="center")
+    for row in S["rows"]:
+        n = len({s["code"] for c in row["cells"] for u in c for s in u["stds"]})
+        vals = [f"{row['name']}\n({n}개)"]
+        for c in row["cells"]:
+            parts = []
+            for u in c:
+                tag = "1·2" if len(u["sems"]) > 1 or "·" in u["sems"][0] else u["sems"][0][0]
+                codes = " ".join(s["code"].strip("[]") for s in u["stds"])
+                parts.append(f"[{tag}] {u['u']}\n   {codes}")
+            vals.append("\n".join(parts))
+        ws.append(vals)
+        r = ws.max_row
+        lines = max(v.count("\n") + 1 for v in vals)
+        ws.row_dimensions[r].height = max(30, 13 * lines)
+        for j, cell in enumerate(ws[r], 1):
+            cell.font, cell.border, cell.alignment = BODY, GRID, WRAP
+            if j == 1:
+                cell.font = Font(name=FONT, size=10, bold=True)
+            elif cell.value:
+                cell.fill = PatternFill("solid", fgColor=BAND_FILL[j - 1])
+    if S["unplaced"]:
+        ws.append(["미배치: " + ", ".join(f"{u['code']} {u['group']}" for u in S["unplaced"])])
+        ws.cell(ws.max_row, 1).font = Font(name=FONT, size=9, color="B54848")
+ws.column_dimensions["A"].width = 18
+for c in "BCDEFG":
+    ws.column_dimensions[c].width = 30
+ws.freeze_panes = "B2"
+
 wb.move_sheet("안내", offset=-(len(wb.sheetnames) - 1))
 wb.move_sheet("과목·영역별", offset=-(wb.sheetnames.index("과목·영역별") - 1))
+wb.move_sheet("내용 체계 도식", offset=-(wb.sheetnames.index("내용 체계 도식") - 2))
 
 out = os.path.join(os.path.dirname(HERE), "초등_성취기준_학년별.xlsx")
 wb.save(out)
