@@ -130,7 +130,7 @@ function renderGrade(g){
       <div class="sems">${blocks}</div>
       ${rows.length ? `<details><summary>${g.grade}학년 ${esc(s.name)} 영역 성취수준 (${esc(g.band)} 기준)</summary>
       <div class="table">${head}${rows.map(rowHtml).join('')}</div></details>` : ''}</section>`;
-  }).join('') + (g.grade >= 5 ? `<section class="subj"><h2>아직 배치하지 못한 성취기준 <small>5~6학년군 · 2학기 계획서 미제출 · ${D.unplaced.length}개</small></h2>
+  }).join('') + (g.grade >= 5 ? `<section class="subj"><h2>2026 계획서에 단원이 없는 성취기준 <small>5~6학년군 · 교육과정 전환기 · ${D.unplaced.length}개</small></h2>
       <details><summary>목록 펼치기</summary><div class="sem"><ul>${D.unplaced.map(x => `<li><span class="std"><b>${esc(x.code)}</b> ${esc(x.text)}</span>
       <span class="chips"><span class="chip">${esc(x.subj)} · ${esc(x.group)}</span></span></li>`).join('')}</ul></div></details></section>` : '');
   note.textContent = '※ 성취기준은 2022 개정 교육과정 원문이고, 학기·단원은 2026학년도 학교 연간 지도 계획과 대조해 배치했습니다(자동 대조 + 교사 검토 보정). ' + D.missing;
