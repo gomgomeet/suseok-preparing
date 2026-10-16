@@ -31,6 +31,24 @@ nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--
   padding:6px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
 .tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav{display:grid;gap:8px}
+.modes{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;justify-self:start}
+.modes button{font:inherit;font-weight:600;font-size:13px;border:0;background:var(--surface);color:var(--muted);padding:6px 16px;cursor:pointer}
+.modes button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.modes button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.subj{margin-top:26px;display:grid;gap:12px}
+.subj h2{border-bottom:1px solid var(--line);padding-bottom:6px}
+.sems{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sem{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:12px 14px;min-width:0}
+.sem h3{margin:0 0 8px;font-size:13px;color:var(--accent);letter-spacing:.04em}
+.sem ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.sem li{display:grid;gap:3px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--muted);background:var(--bg)}
+details{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details .table{border:0;border-top:1px solid var(--line);border-radius:0 0 8px 8px}
 .levels{display:flex;flex-wrap:wrap;gap:8px 18px;padding-block:14px;font-size:13px;color:var(--muted)}
 .levels b{font-weight:600}
 .pill{display:inline-block;min-width:22px;text-align:center;font-weight:600;font-size:12px;border-radius:4px;padding:0 6px;margin-right:4px;color:var(--surface)}
@@ -59,9 +77,9 @@ h2 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:4
 <header>
   <span class="eyebrow">2022 개정 교육과정 · 초등학교</span>
   <h1>교과별 성취수준</h1>
-  <p class="lede">9개 교과의 학년군·영역별 성취수준(A·B·C)입니다. 같은 학년군의 두 학년은 같은 성취수준을 공유합니다.</p>
+  <p class="lede">학년별 보기는 2026학년도 학교 연간 지도 계획의 단원을 영역에 연결해, 그 학년에서 다루는 성취수준(A·B·C)을 보여 줍니다. 과목별 보기는 학년군 전체 성취수준입니다.</p>
 </header>
-<nav><div class="tabs" role="tablist" id="tabs"></div></nav>
+<nav><div class="modes" role="tablist" id="modes"><button type="button" id="mode-grade">학년별</button><button type="button" id="mode-subj">과목별</button></div><div class="tabs" role="tablist" id="tabs"></div></nav>
 <div class="levels" id="levels"></div>
 <main id="main"></main>
 <p class="note" id="note"></p>
@@ -69,23 +87,52 @@ h2 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:4
 <script>
 const D = __DATA__;
 const tabs = document.getElementById('tabs'), main = document.getElementById('main');
-const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 document.getElementById('levels').innerHTML = Object.entries(D.general)
   .map(([k,v]) => `<span><span class="pill p${k}">${k}</span>${esc(v)}</span>`).join('');
-document.getElementById('note').textContent = '※ ' + D.note + ' A·B·C 문구는 평가원 성취수준 일반적 특성을 영역에 적용한 정리본으로, 평가원 원문과 다를 수 있습니다.';
-function show(i){
-  const s = D.subjects[i];
-  [...tabs.children].forEach((b,j)=>b.setAttribute('aria-selected', j===i));
+const note = document.getElementById('note');
+const SUB = Object.fromEntries(D.subjects.map(s => [s.name, s]));
+const head = `<div class="row head"><div>영역</div><div><span class="pill pA">A</span>잘함</div><div><span class="pill pB">B</span>보통</div><div><span class="pill pC">C</span>노력 요함</div></div>`;
+const rowHtml = r => `<div class="row"><div class="area">${esc(r[0])}${r[1]?`<span class="code">[${esc(r[1])}-○○]</span>`:''}</div>
+  <div><span class="pill pA lv">A</span>${esc(r[2])}</div><div><span class="pill pB lv">B</span>${esc(r[3])}</div><div><span class="pill pC lv">C</span>${esc(r[4])}</div></div>`;
+let mode = 'grade', idx = 0;
+function save(){ try{ localStorage.setItem('view', JSON.stringify({mode, idx})) }catch(e){} }
+function renderTabs(){
+  const items = mode === 'grade' ? D.grades.map(g => g.grade + '학년') : D.subjects.map(s => s.name);
+  tabs.innerHTML = '';
+  items.forEach((t,i) => { const b = document.createElement('button'); b.type='button'; b.role='tab'; b.id=`tab-${mode}-${i}`; b.textContent=t;
+    b.setAttribute('aria-selected', i===idx); b.onclick = () => { idx=i; render(); }; tabs.appendChild(b); });
+  document.getElementById('mode-grade').setAttribute('aria-selected', mode==='grade');
+  document.getElementById('mode-subj').setAttribute('aria-selected', mode==='subj');
+}
+function renderGrade(g){
+  main.innerHTML = g.subjects.map(s => {
+    const used = []; s.sems.forEach(se => se.units.forEach(u => u[1].forEach(d => { if (!used.includes(d)) used.push(d) })));
+    const band = SUB[s.name].bands.find(b => b.band === g.band);
+    const rows = band.rows.filter(r => used.includes(r[0]));
+    return `<section class="subj"><h2>${esc(s.name)} <small>${g.grade}학년 · ${esc(g.band)} 성취수준 적용</small></h2>
+      <div class="sems">${s.sems.map(se => `<div class="sem"><h3>${esc(se.sem)}</h3><ul>${se.units.map(u => `<li><span>${esc(u[0])}</span>
+        <span class="chips">${u[1].length ? u[1].map(d => `<span class="chip">${esc(d)}</span>`).join('') : '<span class="chip">영역 통합(탐구)</span>'}</span></li>`).join('')}</ul></div>`).join('')}</div>
+      <details open><summary>${g.grade}학년 ${esc(s.name)}에서 다루는 영역의 성취수준 (${rows.length}개 영역)</summary>
+      <div class="table">${head}${rows.map(rowHtml).join('')}</div></details></section>`;
+  }).join('');
+  note.textContent = '※ 단원명은 2026학년도 학교 연간 지도 계획 원문이고, 관련 영역 연결은 교사 검토용입니다. ' + D.missing;
+}
+function renderSubject(s){
   main.innerHTML = s.bands.map(b => `
     <section class="band"><h2>${esc(b.band)} <small>${esc(s.name)} · ${b.rows.length}개 영역</small></h2>
-    <div class="table">
-      <div class="row head"><div>영역</div><div><span class="pill pA">A</span>잘함</div><div><span class="pill pB">B</span>보통</div><div><span class="pill pC">C</span>노력 요함</div></div>
-      ${b.rows.map(r => `<div class="row"><div class="area">${esc(r[0])}${r[1]?`<span class="code">[${esc(r[1])}-○○]</span>`:''}</div>
-        <div><span class="pill pA lv">A</span>${esc(r[2])}</div><div><span class="pill pB lv">B</span>${esc(r[3])}</div><div><span class="pill pC lv">C</span>${esc(r[4])}</div></div>`).join('')}
-    </div></section>`).join('');
-  try{ localStorage.setItem('subj', i) }catch(e){}
+    <div class="table">${head}${b.rows.map(rowHtml).join('')}</div></section>`).join('');
+  note.textContent = '※ ' + D.note + ' A·B·C 문구는 평가원 성취수준 일반적 특성을 영역에 적용한 정리본으로, 평가원 원문과 다를 수 있습니다.';
 }
-D.subjects.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.role='tab';b.id='tab-'+s.slug;b.textContent=s.name;b.onclick=()=>show(i);tabs.appendChild(b)});
-let start = 0; try{ const v = +localStorage.getItem('subj'); if (v>=0 && v<D.subjects.length) start = v }catch(e){}
-show(start);
+function render(){
+  const list = mode === 'grade' ? D.grades : D.subjects;
+  if (idx >= list.length) idx = 0;
+  renderTabs();
+  mode === 'grade' ? renderGrade(D.grades[idx]) : renderSubject(D.subjects[idx]);
+  save();
+}
+document.getElementById('mode-grade').onclick = () => { mode='grade'; idx=0; render(); };
+document.getElementById('mode-subj').onclick = () => { mode='subj'; idx=0; render(); };
+try{ const v = JSON.parse(localStorage.getItem('view')||'null'); if (v && (v.mode==='grade'||v.mode==='subj')) { mode=v.mode; idx=+v.idx||0; } }catch(e){}
+render();
 </script>
