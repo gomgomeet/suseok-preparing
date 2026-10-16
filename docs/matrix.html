@@ -52,31 +52,32 @@ td.empty{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(127,
 .flow .arr{color:var(--sub)}
 .unpl{margin-top:12px;font-size:13px;color:var(--warn)}
 .note{margin-top:16px;color:var(--sub);font-size:12.5px}
-#printArea{display:none}
+#printArea{display:none;--bg:#fff;--card:#fff;--ink:#1f2328;--sub:#5b6270;--line:#cfd4d0;--acc:#2f6f5e;--acc2:#e8f1ee;--s1:#3b6fb6;--s2:#c0703a;--both:#7a5aa8;--heat:47,111,94;color:var(--ink);background:#fff}
+#printArea.cap{display:block;position:fixed;left:-20000px;top:0;width:1400px}
+#printArea.cap .pa-sec{padding:16px;background:#fff;width:1400px}
+.pa-h{font-size:15px;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pa-h b{font-size:18px;color:var(--acc)}
+.pa-h span{font-size:11px;color:var(--sub)}
+.pa-f{margin-top:5px;font-size:10px;color:var(--sub)}
+#printArea table{min-width:0;width:100%;table-layout:fixed;border:1px solid var(--line)}
+#printArea th,#printArea td{position:static;padding:4px;font-size:10px;min-width:0}
+#printArea thead th{font-size:11px}
+#printArea tbody th{width:88px;font-size:11px}
+#printArea thead th:first-child{width:88px}
+#printArea .u{display:block;padding:2px 4px;margin:0 0 3px;font-size:10px;border-radius:5px;break-inside:avoid;background:#fff;cursor:default}
+#printArea .u .codes{font-size:8.5px}
+#printArea tr{break-inside:avoid}
+.hide-codes #printArea .u .codes{display:none}
+#printArea td.g2,#printArea th.g2,#printArea td.g4,#printArea th.g4{border-right:2px solid var(--acc)}
+#pdfMsg{font-size:12px;color:var(--acc)}
 @media print{
   @page{size:A4 landscape;margin:9mm}
-  :root,:root[data-theme],:root:not([data-theme="light"]){--bg:#fff;--card:#fff;--ink:#1f2328;--sub:#5b6270;--line:#cfd4d0;--acc:#2f6f5e;--acc2:#e8f1ee;--s1:#3b6fb6;--s2:#c0703a;--both:#7a5aa8;--heat:47,111,94}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff}
   .wrap{display:none}
   #printArea{display:block}
   .pa-sec{break-after:page;page-break-after:always}
   .pa-sec:last-child{break-after:auto;page-break-after:auto}
-  .pa-h{font-size:15px;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-  .pa-h b{font-size:18px;color:var(--acc)}
-  .pa-h span{font-size:11px;color:var(--sub)}
-  .pa-f{margin-top:5px;font-size:10px;color:var(--sub)}
-  #printArea table{min-width:0;width:100%;table-layout:fixed;border:1px solid var(--line)}
-  #printArea th,#printArea td{position:static;padding:4px;font-size:10px;min-width:0}
-  #printArea thead th{font-size:11px}
-  #printArea tbody th{width:88px;font-size:11px}
-  #printArea thead th:first-child{width:88px}
-  #printArea .u{padding:2px 4px;margin:0 0 3px;font-size:10px;border-radius:5px;break-inside:avoid;background:#fff}
-  #printArea .u .codes{font-size:8.5px}
-  #printArea tr{break-inside:avoid}
-  .hide-codes #printArea .u .codes{display:none}
-  #printArea .band-gap-x{}
-  #printArea td.g2,#printArea th.g2,#printArea td.g4,#printArea th.g4{border-right:2px solid var(--acc)}
 }
 @media (max-width:640px){h1{font-size:19px}.legend{margin-left:0}}
 </style>
@@ -91,6 +92,7 @@ td.empty{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(127,
     <button id="tSem">학기 전체</button>
     <button id="pCur">PDF: 이 과목</button>
     <button id="pAll">PDF: 9과목 전체</button>
+    <span id="pdfMsg"></span>
     <div class="legend"><span><i class="sem s1">1</i>1학기</span><span><i class="sem s2">2</i>2학기</span><span><i class="sem sb">1·2</i>두 학기</span><span>숫자 = 성취기준 수</span></div>
   </div>
   <div class="summary" id="summary"></div>
@@ -143,6 +145,52 @@ function buildTable(S, live){
   });
   return h + `</tbody>`;
 }
+function paHTML(list){
+  const semLabel = semF==="all" ? "" : ` · ${semF}만`;
+  return list.map(S=>`<section class="pa-sec"><div class="pa-h"><b>${esc(S.name)}</b> 학년별 내용 체계 도식 <span>성취기준 ${S.count}개 · 영역 ${S.rows.length}개${semLabel} · 2022 개정 / 2026 연간 지도 계획 기준</span></div>`+
+    `<table>${buildTable(S,false)}</table>`+
+    `<div class="pa-f"><i class="sem s1">1</i> 1학기 <i class="sem s2">2</i> 2학기 <i class="sem sb">1·2</i> 두 학기 · 숫자 = 성취기준 수`+
+    (S.unplaced.length?` · 미배치: ${S.unplaced.map(u=>esc(u.code)).join(" ")}`:"")+`</div></section>`).join("");
+}
+function loadScript(src){return new Promise((ok,no)=>{const t=document.createElement("script");t.src=src;t.onload=ok;t.onerror=no;document.head.appendChild(t);});}
+let pdfLibs=null;
+function libs(){ return pdfLibs || (pdfLibs = Promise.all([
+  loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
+  loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")])); }
+let busy=false;
+async function makePdf(all){
+  if(busy) return; busy=true;
+  const msg=$("pdfMsg"); const list = all ? DATA.subjects : [DATA.subjects[cur]];
+  const name = (all ? "학년별_내용체계_도식_9과목" : `학년별_내용체계_도식_${list[0].name}`)+".pdf";
+  try{
+    msg.textContent="PDF 만드는 중…";
+    await libs();
+    const pa=$("printArea"); pa.innerHTML=paHTML(list); pa.classList.add("cap");
+    const pdf=new window.jspdf.jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    const secs=[...pa.querySelectorAll(".pa-sec")];
+    for(let i=0;i<secs.length;i++){
+      msg.textContent=`PDF 만드는 중… (${i+1}/${secs.length})`;
+      const c=await html2canvas(secs[i],{scale:2,backgroundColor:"#ffffff",windowWidth:1440,logging:false});
+      const mw=281, mh=194, r=Math.min(mw/c.width, mh/c.height);
+      const w=c.width*r, h=c.height*r;
+      if(i) pdf.addPage();
+      pdf.addImage(c.toDataURL("image/jpeg",0.92),"JPEG",(297-w)/2,8,w,h);
+    }
+    pa.classList.remove("cap"); pa.innerHTML="";
+    const blob=pdf.output("blob");
+    const dl = (window.claude && window.claude.use) ? await window.claude.use("downloads").catch(()=>null) : null;
+    if(dl){
+      try{ await dl.save({filename:name,data:blob}); msg.textContent="저장했습니다."; }
+      catch(e){ msg.textContent = e&&e.code==="declined" ? "저장을 취소했습니다." : "저장하지 못했습니다 ("+(e&&e.code||"오류")+")"; }
+    }else{
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+      msg.textContent="다운로드를 시작했습니다.";
+    }
+  }catch(e){
+    $("printArea").classList.remove("cap");
+    msg.textContent="PDF를 만들지 못했습니다. 잠시 뒤 다시 눌러 주세요.";
+  }finally{ busy=false; }
+}
 function fitPages(){
   // A4 가로(여백 9mm) ≈ 1055×725px: 과목마다 한 쪽에 들어가도록 축소
   const pa = $("printArea"), W = 1050, H = 715;
@@ -158,11 +206,7 @@ function fitPages(){
 }
 function printTables(all){
   const list = all ? DATA.subjects : [DATA.subjects[cur]];
-  const semLabel = semF==="all" ? "" : ` · ${semF}만`;
-  $("printArea").innerHTML = list.map(S=>`<section class="pa-sec"><div class="pa-h"><b>${esc(S.name)}</b> 학년별 내용 체계 도식 <span>성취기준 ${S.count}개 · 영역 ${S.rows.length}개${semLabel} · 2022 개정 / 2026 연간 지도 계획 기준</span></div>`+
-    `<table>${buildTable(S,false)}</table>`+
-    `<div class="pa-f"><i class="sem s1">1</i> 1학기 <i class="sem s2">2</i> 2학기 <i class="sem sb">1·2</i> 두 학기 · 숫자 = 성취기준 수`+
-    (S.unplaced.length?` · 미배치: ${S.unplaced.map(u=>esc(u.code)).join(" ")}`:"")+`</div></section>`).join("");
+  $("printArea").innerHTML = paHTML(list);
   fitPages();
   setTimeout(()=>window.print(), 50);
 }
@@ -204,8 +248,8 @@ function detail(){
     u.stds.map(s=>`<div class="std"><code>${esc(s.code)}</code>${esc(s.text)}${s.kind && !/학년/.test(s.kind)?`<span class="k">${esc(s.kind)}</span>`:""}${S.name==="사회"||S.name==="과학"?`<span class="k">${esc(s.group)}</span>`:""}</div>`).join("")+
     `<div class="meta" style="margin-top:12px">「${esc(row.name)}」 영역의 학년 흐름</div><div class="flow">${flow}</div>`;
 }
-$("pCur").onclick = ()=>printTables(false);
-$("pAll").onclick = ()=>printTables(true);
+$("pCur").onclick = ()=>makePdf(false);
+$("pAll").onclick = ()=>makePdf(true);
 window.printTables = printTables;
 $("tCodes").onclick = e=>{ document.body.classList.toggle("hide-codes"); e.currentTarget.classList.toggle("on"); };
 $("tSem").onclick = e=>{ semF = semF==="all"?"1학기":semF==="1학기"?"2학기":"all"; e.currentTarget.textContent = semF==="all"?"학기 전체":semF+"만"; e.currentTarget.classList.toggle("on", semF!=="all"); render(); };
