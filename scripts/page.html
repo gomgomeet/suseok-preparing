@@ -47,6 +47,7 @@ nav{display:grid;gap:8px}
 .std{line-height:1.55}
 .std b{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;margin-right:2px}
 .chip.unit{color:var(--fg)}
+.chip.ref{color:var(--lvB);border-color:currentColor;background:transparent}
 .chip.k{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .sem li{padding-bottom:8px;border-bottom:1px dashed var(--line)}
 .sem li:last-child{border-bottom:0;padding-bottom:0}
@@ -122,7 +123,7 @@ function renderGrade(g){
       return `<div class="sem"><h3>${esc(se)} · ${list.length}개</h3><ul>${list.map(x => {
         const u = x.units.filter(t => x.sems.length < 2 || t.startsWith(se[0])).map(t => t.replace(/^\d학기 /,''));
         return `<li><span class="std"><b>${esc(x.code)}</b> ${esc(x.text)}</span>
-          <span class="chips"><span class="chip unit">${esc(u.join(' / '))}</span>${KIND[x.kind] ? `<span class="chip k">${KIND[x.kind]}</span>` : ''}</span></li>`;
+          <span class="chips"><span class="chip unit">${esc(u.join(' / '))}</span>${KIND[x.kind] ? `<span class="chip k">${KIND[x.kind]}</span>` : ''}${x.refs.map(r => `<span class="chip ref">★ ${esc(r)}</span>`).join('')}</span></li>`;
       }).join('')}</ul></div>`;
     }).join('');
     return `<section class="subj"><h2>${esc(s.name)} <small>${g.grade}학년 · 성취기준 ${s.stds.length}개</small></h2>

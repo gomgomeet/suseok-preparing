@@ -6,6 +6,7 @@ import html, json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from data import GENERAL, SUBJECTS, INTEGRATED_NOTE
 from grades import GRADES, MISSING
+from refs import REFS
 from norm import load as load_std, by_grade as std_by_grade, label
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +41,7 @@ def readme_md():
            " · ".join(f"[{g}학년](학년별/{g}학년.md)" for g in sorted(GRADES)), "",
            "각 학년 파일에는 그 학년에서 다루는 성취기준(코드·원문)이 과목별로 학기·단원과 함께 정리되어 있고, 영역 성취수준(A·B·C)이 붙어 있습니다. "
            "같은 내용을 엑셀로 정리한 [초등_성취기준_학년별.xlsx](초등_성취기준_학년별.xlsx)도 있습니다(학년별 시트, 미배치 시트, 학년군 원본 대비 시트).", "",
+           "## 수업안 근거자료", "", "[근거자료/](근거자료/README.md): 깊이있는 수업 웹진 「깊수다」 6호(2026.8.), 「폰프리 스쿨」 실천 안내서(2026) 요약과 성취기준 연결", "",
            "## 과목별 파일", "", "| 과목 | 학년군 | 영역 수 |", "|---|---|---|"]
     for s in SUBJECTS:
         bands = " · ".join(s["bands"].keys())
@@ -73,13 +75,13 @@ STD_BY_G = std_by_grade(STD_DATA)
 
 def grade_md(g):
     out = [f"# {g}학년 성취기준 (2026학년도 학교 교육과정 배치)", "", GRADE_NOTE, "",
-           "◆공통: 같은 학년군의 두 학년에서 모두 다룸 · ◇반복·심화: 음악·미술·체육처럼 두 학년에 걸쳐 반복·심화", ""]
+           "◆공통: 같은 학년군의 두 학년에서 모두 다룸 · ◇반복·심화: 음악·미술·체육처럼 두 학년에 걸쳐 반복·심화 · ★근거 사례 있음([근거자료](../근거자료/README.md))", ""]
     subjects = list(dict.fromkeys(r["교과"] for r, _, _ in STD_BY_G[g]))
     for name in subjects:
         rows = [(r, sems, units) for r, sems, units in STD_BY_G[g] if r["교과"] == name]
         out += [f"## {name} ({len(rows)}개)", "", "| 학기 | 단원 | 코드 | 성취기준 |", "|---|---|---|---|"]
         for r, sems, units in rows:
-            out.append(f"| {' · '.join(sems)} | {cell('<br>'.join(units))} | {r['코드']}{KIND_MARK.get(label(r), '')} | {cell(r['성취기준'])} |")
+            out.append(f"| {' · '.join(sems)} | {cell('<br>'.join(units))} | {r['코드']}{KIND_MARK.get(label(r), '')}{' ★' + ', '.join(REFS[r['코드']]) if r['코드'] in REFS else ''} | {cell(r['성취기준'])} |")
         used = []
         for sem, us in GRADES.get(g, {}).get(name, {}).items():
             for _, ds in us:
@@ -111,7 +113,7 @@ def build_html():
                 for _, ds in us:
                     used += [d for d in ds if d not in used]
             subs.append({"name": n, "areas": used, "stds": [
-                {"code": r["코드"], "text": r["성취기준"], "sems": sems, "units": units, "kind": label(r)}
+                {"code": r["코드"], "text": r["성취기준"], "sems": sems, "units": units, "kind": label(r), "refs": REFS.get(r["코드"], [])}
                 for r, sems, units in STD_BY_G[g] if r["교과"] == n]})
         grades.append({"grade": g, "band": band_of(g), "subjects": subs})
     unplaced = [{"subj": r["교과"], "group": r["영역"], "code": r["코드"], "text": r["성취기준"]}
