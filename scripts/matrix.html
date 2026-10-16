@@ -52,7 +52,32 @@ td.empty{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(127,
 .flow .arr{color:var(--sub)}
 .unpl{margin-top:12px;font-size:13px;color:var(--warn)}
 .note{margin-top:16px;color:var(--sub);font-size:12.5px}
-@media print{.tabs,.tools{display:none}.wrap{max-width:none}.tw{overflow:visible}table{min-width:0}th{position:static}tbody th{position:static}}
+#printArea{display:none}
+@media print{
+  @page{size:A4 landscape;margin:9mm}
+  :root,:root[data-theme],:root:not([data-theme="light"]){--bg:#fff;--card:#fff;--ink:#1f2328;--sub:#5b6270;--line:#cfd4d0;--acc:#2f6f5e;--acc2:#e8f1ee;--s1:#3b6fb6;--s2:#c0703a;--both:#7a5aa8;--heat:47,111,94}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff}
+  .wrap{display:none}
+  #printArea{display:block}
+  .pa-sec{break-after:page;page-break-after:always}
+  .pa-sec:last-child{break-after:auto;page-break-after:auto}
+  .pa-h{font-size:15px;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .pa-h b{font-size:18px;color:var(--acc)}
+  .pa-h span{font-size:11px;color:var(--sub)}
+  .pa-f{margin-top:5px;font-size:10px;color:var(--sub)}
+  #printArea table{min-width:0;width:100%;table-layout:fixed;border:1px solid var(--line)}
+  #printArea th,#printArea td{position:static;padding:4px;font-size:10px;min-width:0}
+  #printArea thead th{font-size:11px}
+  #printArea tbody th{width:88px;font-size:11px}
+  #printArea thead th:first-child{width:88px}
+  #printArea .u{padding:2px 4px;margin:0 0 3px;font-size:10px;border-radius:5px;break-inside:avoid;background:#fff}
+  #printArea .u .codes{font-size:8.5px}
+  #printArea tr{break-inside:avoid}
+  .hide-codes #printArea .u .codes{display:none}
+  #printArea .band-gap-x{}
+  #printArea td.g2,#printArea th.g2,#printArea td.g4,#printArea th.g4{border-right:2px solid var(--acc)}
+}
 @media (max-width:640px){h1{font-size:19px}.legend{margin-left:0}}
 </style>
 </head>
@@ -64,6 +89,8 @@ td.empty{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(127,
   <div class="tools">
     <button id="tCodes" class="on">성취기준 코드 보기</button>
     <button id="tSem">학기 전체</button>
+    <button id="pCur">PDF: 이 과목</button>
+    <button id="pAll">PDF: 9과목 전체</button>
     <div class="legend"><span><i class="sem s1">1</i>1학기</span><span><i class="sem s2">2</i>2학기</span><span><i class="sem sb">1·2</i>두 학기</span><span>숫자 = 성취기준 수</span></div>
   </div>
   <div class="summary" id="summary"></div>
@@ -72,6 +99,7 @@ td.empty{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(127,
   <div class="unpl" id="unpl"></div>
   <p class="note">· 국어·수학·도덕·체육·음악·미술·실과는 교육과정 영역 그대로, 사회·과학은 학년군별 성취기준 묶음을 2022 개정 내용 영역(과학: 운동과 에너지·물질·생명·지구와 우주·과학과 사회 / 사회: 지리·역사·일반사회 계열)으로 다시 묶었습니다.<br>· 음악은 연간 계획이 제재곡 중심이라 단원 대신 '전 단원'으로 표시했습니다. 1·2학년은 국어·수학만 해당합니다(통합교과 제외).<br>· 굵은 세로선은 학년군 경계(2|3, 4|5)입니다.</p>
 </div>
+<div id="printArea"></div>
 <script>
 const DATA = __DATA__;
 const GR = [1,2,3,4,5,6];
@@ -92,6 +120,52 @@ function tabs(){
   $("tabs").innerHTML = DATA.subjects.map((s,i)=>`<button class="${i===cur?'on':''}" data-i="${i}">${s.name}</button>`).join("");
   $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;sel=null;try{localStorage.setItem("mx_subj",cur)}catch(e){};render();});
 }
+function rowCount(r){const set=new Set();r.cells.forEach(c=>c.forEach(u=>u.stds.forEach(s=>set.add(s.code))));return set.size;}
+function buildTable(S, live){
+  const gs = GR.filter(g=>S.grades.includes(g));
+  let max = 1;
+  S.rows.forEach(r=>r.cells.forEach(c=>{const n=c.filter(u=>semOk(u.sems)).reduce((a,u)=>a+u.stds.length,0); if(n>max)max=n;}));
+  let h = `<thead><tr><th style="left:0;z-index:3">영역 \\ 학년</th>`+gs.map(g=>`<th class="g${g}">${g}학년<span class="band">${band(g)}</span></th>`).join("")+`</tr></thead><tbody>`;
+  S.rows.forEach((r,ri)=>{
+    h += `<tr><th>${esc(r.name)}<small>${rowCount(r)}개</small></th>`;
+    gs.forEach(g=>{
+      const units = r.cells[g-1].filter(u=>semOk(u.sems));
+      const n = units.reduce((a,u)=>a+u.stds.length,0);
+      if(!units.length){ h += `<td class="g${g} empty"></td>`; return; }
+      const a = (0.06 + 0.22*n/max).toFixed(2);
+      h += `<td class="g${g}" style="background:rgba(var(--heat),${a})">`+units.map(u=>{
+        const key = `${ri}|${g}|${u.u}`;
+        const inner = `${semTag(u.sems)} ${esc(u.u)}<span class="n">${u.stds.length}</span><span class="codes">${u.stds.map(s=>s.code.replace(/[\[\]]/g,"")).join(" ")}</span>`;
+        return live ? `<button class="u ${sel===key?'sel':''}" data-k="${esc(key)}">${inner}</button>` : `<div class="u">${inner}</div>`;
+      }).join("")+`</td>`;
+    });
+    h += `</tr>`;
+  });
+  return h + `</tbody>`;
+}
+function fitPages(){
+  // A4 가로(여백 9mm) ≈ 1055×725px: 과목마다 한 쪽에 들어가도록 축소
+  const pa = $("printArea"), W = 1050, H = 715;
+  pa.style.cssText = "display:block;position:absolute;left:-99999px;top:0;width:"+W+"px";
+  pa.querySelectorAll(".pa-sec").forEach(sec=>{
+    sec.style.zoom = 1; sec.style.width = W+"px";
+    const fits = z => { sec.style.width = (W/z)+"px"; return sec.scrollHeight*z <= H; };
+    let z = 1;
+    if(!fits(1)){ let lo = 0.4, hi = 1; for(let i=0;i<10;i++){ const m=(lo+hi)/2; if(fits(m)) lo=m; else hi=m; } z = lo; }
+    sec.style.zoom = z; sec.style.width = (W/z)+"px";
+  });
+  pa.style.cssText = "";
+}
+function printTables(all){
+  const list = all ? DATA.subjects : [DATA.subjects[cur]];
+  const semLabel = semF==="all" ? "" : ` · ${semF}만`;
+  $("printArea").innerHTML = list.map(S=>`<section class="pa-sec"><div class="pa-h"><b>${esc(S.name)}</b> 학년별 내용 체계 도식 <span>성취기준 ${S.count}개 · 영역 ${S.rows.length}개${semLabel} · 2022 개정 / 2026 연간 지도 계획 기준</span></div>`+
+    `<table>${buildTable(S,false)}</table>`+
+    `<div class="pa-f"><i class="sem s1">1</i> 1학기 <i class="sem s2">2</i> 2학기 <i class="sem sb">1·2</i> 두 학기 · 숫자 = 성취기준 수`+
+    (S.unplaced.length?` · 미배치: ${S.unplaced.map(u=>esc(u.code)).join(" ")}`:"")+`</div></section>`).join("");
+  fitPages();
+  setTimeout(()=>window.print(), 50);
+}
 function render(){
   tabs();
   const S = DATA.subjects[cur];
@@ -108,26 +182,8 @@ function render(){
     `<br>가장 비중 큰 영역: <b>${esc(top.name)}</b>(${top.n}개)`+
     (spread.length?` · 모든 학년에 이어지는 영역: ${spread.map(esc).join(", ")}`:"")+
     `<br>`+rowStats.map(r=>`${esc(r.name)} ${r.n} <span style="color:var(--sub)">(${r.gr.length?r.gr.join("·")+"학년":"미배치"})</span>`).join(" &nbsp;|&nbsp; ");
-  // table
-  let max = 1;
-  S.rows.forEach(r=>r.cells.forEach(c=>{const n=c.filter(u=>semOk(u.sems)).reduce((a,u)=>a+u.stds.length,0); if(n>max)max=n;}));
-  let h = `<thead><tr><th style="left:0;z-index:3">영역 \\ 학년</th>`+gs.map(g=>`<th class="g${g}">${g}학년<span class="band">${band(g)}</span></th>`).join("")+`</tr></thead><tbody>`;
-  S.rows.forEach((r,ri)=>{
-    const rs = rowStats[ri];
-    h += `<tr><th>${esc(r.name)}<small>${rs.n}개</small></th>`;
-    gs.forEach(g=>{
-      const units = r.cells[g-1].filter(u=>semOk(u.sems));
-      const n = units.reduce((a,u)=>a+u.stds.length,0);
-      if(!units.length){ h += `<td class="g${g} empty"></td>`; return; }
-      const a = (0.06 + 0.22*n/max).toFixed(2);
-      h += `<td class="g${g}" style="background:rgba(var(--heat),${a})">`+units.map(u=>{
-        const key = `${ri}|${g}|${u.u}`;
-        return `<button class="u ${sel===key?'sel':''}" data-k="${esc(key)}">${semTag(u.sems)} ${esc(u.u)}<span class="n">${u.stds.length}</span><span class="codes">${u.stds.map(s=>s.code.replace(/[\[\]]/g,"")).join(" ")}</span></button>`;
-      }).join("")+`</td>`;
-    });
-    h += `</tr>`;
-  });
-  $("tbl").innerHTML = h + `</tbody>`;
+  $("tbl").innerHTML = buildTable(S, true);
+
   $("tbl").querySelectorAll(".u").forEach(b=>b.onclick=()=>{sel=b.dataset.k;render();$("detail").scrollIntoView({behavior:"smooth",block:"nearest"});});
   $("unpl").innerHTML = S.unplaced.length ? `미배치 ${S.unplaced.length}개 (2026 연간 계획에 없음): `+S.unplaced.map(u=>`${esc(u.code)} ${esc(u.group)}`).join(", ") : "";
   detail();
@@ -148,6 +204,9 @@ function detail(){
     u.stds.map(s=>`<div class="std"><code>${esc(s.code)}</code>${esc(s.text)}${s.kind && !/학년/.test(s.kind)?`<span class="k">${esc(s.kind)}</span>`:""}${S.name==="사회"||S.name==="과학"?`<span class="k">${esc(s.group)}</span>`:""}</div>`).join("")+
     `<div class="meta" style="margin-top:12px">「${esc(row.name)}」 영역의 학년 흐름</div><div class="flow">${flow}</div>`;
 }
+$("pCur").onclick = ()=>printTables(false);
+$("pAll").onclick = ()=>printTables(true);
+window.printTables = printTables;
 $("tCodes").onclick = e=>{ document.body.classList.toggle("hide-codes"); e.currentTarget.classList.toggle("on"); };
 $("tSem").onclick = e=>{ semF = semF==="all"?"1학기":semF==="1학기"?"2학기":"all"; e.currentTarget.textContent = semF==="all"?"학기 전체":semF+"만"; e.currentTarget.classList.toggle("on", semF!=="all"); render(); };
 render();
