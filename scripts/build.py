@@ -6,6 +6,7 @@ import html, json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from data import GENERAL, SUBJECTS, INTEGRATED_NOTE
 from grades import GRADES, MISSING
+from norm import load as load_std, by_grade as std_by_grade, label
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MD_DIR = os.path.join(ROOT, "성취수준")
@@ -37,7 +38,8 @@ def readme_md():
            "수석교사 준비용 자료. 9개 교과의 학년군·영역별 성취수준(A·B·C)을 과목별 파일로 정리했습니다.", "",
            NOTICE, "", "## 학년별 파일 (2026학년도 연간 지도 계획 기준)", "",
            " · ".join(f"[{g}학년](학년별/{g}학년.md)" for g in sorted(GRADES)), "",
-           "각 학년 파일에는 과목별 학기 단원, 단원별 관련 영역, 그 학년에서 다루는 영역의 성취수준(A·B·C)이 들어 있습니다.", "",
+           "각 학년 파일에는 그 학년에서 다루는 성취기준(코드·원문)이 과목별로 학기·단원과 함께 정리되어 있고, 영역 성취수준(A·B·C)이 붙어 있습니다. "
+           "같은 내용을 엑셀로 정리한 [초등_성취기준_학년별.xlsx](초등_성취기준_학년별.xlsx)도 있습니다(학년별 시트, 미배치 시트, 학년군 원본 대비 시트).", "",
            "## 과목별 파일", "", "| 과목 | 학년군 | 영역 수 |", "|---|---|---|"]
     for s in SUBJECTS:
         bands = " · ".join(s["bands"].keys())
@@ -62,34 +64,59 @@ def band_of(g):
 
 
 SUB = {s["name"]: s for s in SUBJECTS}
-GRADE_NOTE = ("> 단원명은 2026학년도 학교 연간 지도 계획(학년·학기별) 원문 기준입니다. "
-              "'관련 영역'은 단원 제목·차시 내용을 보고 연결한 것으로 교사 검토용입니다. "
-              "성취수준은 해당 학년군의 영역 성취수준을 그대로 적용합니다.")
+GRADE_NOTE = ("> 성취기준은 2022 개정 교육과정(교육부 고시 제2022-33호) 원문입니다. 학기·단원은 2026학년도 학교 연간 지도 계획과 "
+              "대조해 배치했습니다(자동 대조 + 교사 검토 보정). 성취수준은 해당 학년군의 영역 성취수준을 적용합니다.")
+KIND_MARK = {"두 학년 공통": " ◆공통", "두 학년 반복·심화": " ◇반복·심화"}
+STD_DATA = load_std()
+STD_BY_G = std_by_grade(STD_DATA)
 
 
 def grade_md(g):
-    out = [f"# {g}학년 교과별 단원과 성취수준 (2026학년도)", "", GRADE_NOTE, ""]
-    for name, sems in GRADES[g].items():
-        out += [f"## {name}", "", "| 학기 | 단원 | 관련 영역 |", "|---|---|---|"]
+    out = [f"# {g}학년 성취기준 (2026학년도 학교 교육과정 배치)", "", GRADE_NOTE, "",
+           "◆공통: 같은 학년군의 두 학년에서 모두 다룸 · ◇반복·심화: 음악·미술·체육처럼 두 학년에 걸쳐 반복·심화", ""]
+    subjects = list(dict.fromkeys(r["교과"] for r, _, _ in STD_BY_G[g]))
+    for name in subjects:
+        rows = [(r, sems, units) for r, sems, units in STD_BY_G[g] if r["교과"] == name]
+        out += [f"## {name} ({len(rows)}개)", "", "| 학기 | 단원 | 코드 | 성취기준 |", "|---|---|---|---|"]
+        for r, sems, units in rows:
+            out.append(f"| {' · '.join(sems)} | {cell('<br>'.join(units))} | {r['코드']}{KIND_MARK.get(label(r), '')} | {cell(r['성취기준'])} |")
         used = []
-        for sem, units in sems.items():
-            for u, ds in units:
-                out.append(f"| {sem} | {cell(u)} | {', '.join(ds) if ds else '영역 통합(탐구)'} |")
+        for sem, us in GRADES.get(g, {}).get(name, {}).items():
+            for _, ds in us:
                 used += [d for d in ds if d not in used]
-        rows = [r for r in SUB[name]["bands"][band_of(g)] if r[0] in used]
-        out += ["", f"**{g}학년 {name}에서 다루는 영역의 성취수준** ({band_of(g)} 기준)", "",
-                "| 영역 | A (잘함) | B (보통) | C (노력 요함) |", "|---|---|---|---|"]
-        out += [f"| **{r[0]}** | {cell(r[2])} | {cell(r[3])} | {cell(r[4])} |" for r in rows]
+        lv = [x for x in SUB[name]["bands"][band_of(g)] if x[0] in used]
+        if lv:
+            out += ["", f"<details><summary>{g}학년 {name} 영역 성취수준 (A·B·C)</summary>", "",
+                    "| 영역 | A (잘함) | B (보통) | C (노력 요함) |", "|---|---|---|---|"]
+            out += [f"| **{x[0]}** | {cell(x[2])} | {cell(x[3])} | {cell(x[4])} |" for x in lv]
+            out += ["", "</details>"]
+        out.append("")
+    if g >= 5:
+        un = [r for r in STD_DATA if not r["배치"] and r["학년군"] == "5~6학년군"]
+        out += ["## 아직 배치하지 못한 5~6학년군 성취기준 (2학기 계획서 미제출)", "",
+                "| 교과 | 묶음 | 코드 | 성취기준 |", "|---|---|---|---|"]
+        out += [f"| {r['교과']} | {r['영역']} | {r['코드']} | {cell(r['성취기준'])} |" for r in un]
         out.append("")
     out += [f"※ {MISSING}", ""]
     return "\n".join(out)
 
 
 def build_html():
-    grades = [{"grade": g, "band": band_of(g), "subjects": [
-        {"name": n, "sems": [{"sem": s, "units": [[u, ds] for u, ds in us]} for s, us in sems.items()]}
-        for n, sems in GRADES[g].items()]} for g in sorted(GRADES)]
-    data = json.dumps({"general": GENERAL, "note": INTEGRATED_NOTE, "grades": grades, "missing": MISSING,
+    grades = []
+    for g in sorted(GRADES):
+        subs = []
+        for n in dict.fromkeys(r["교과"] for r, _, _ in STD_BY_G[g]):
+            used = []
+            for _, us in GRADES[g].get(n, {}).items():
+                for _, ds in us:
+                    used += [d for d in ds if d not in used]
+            subs.append({"name": n, "areas": used, "stds": [
+                {"code": r["코드"], "text": r["성취기준"], "sems": sems, "units": units, "kind": label(r)}
+                for r, sems, units in STD_BY_G[g] if r["교과"] == n]})
+        grades.append({"grade": g, "band": band_of(g), "subjects": subs})
+    unplaced = [{"subj": r["교과"], "group": r["영역"], "code": r["코드"], "text": r["성취기준"]}
+                for r in STD_DATA if not r["배치"]]
+    data = json.dumps({"general": GENERAL, "note": INTEGRATED_NOTE, "grades": grades, "missing": MISSING, "unplaced": unplaced,
                        "subjects": [{"name": s["name"], "slug": s["slug"], "bands": [
                            {"band": b, "rows": [list(r) for r in rows]} for b, rows in s["bands"].items()]}
                            for s in SUBJECTS]}, ensure_ascii=False)

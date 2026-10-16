@@ -1,4 +1,4 @@
-<title>초등 교과 성취수준</title>
+<title>초등 성취기준·성취수준</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
@@ -38,12 +38,18 @@ nav{display:grid;gap:8px}
 .modes button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .subj{margin-top:26px;display:grid;gap:12px}
 .subj h2{border-bottom:1px solid var(--line);padding-bottom:6px}
-.sems{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sems{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
 .sem{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:12px 14px;min-width:0}
 .sem h3{margin:0 0 8px;font-size:13px;color:var(--accent);letter-spacing:.04em}
 .sem ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .sem li{display:grid;gap:3px}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
+.std{line-height:1.55}
+.std b{font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;margin-right:2px}
+.chip.unit{color:var(--fg)}
+.chip.k{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.sem li{padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.sem li:last-child{border-bottom:0;padding-bottom:0}
 .chip{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--muted);background:var(--bg)}
 details{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px}
@@ -76,8 +82,8 @@ h2 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:4
 <div class="wrap">
 <header>
   <span class="eyebrow">2022 개정 교육과정 · 초등학교</span>
-  <h1>교과별 성취수준</h1>
-  <p class="lede">학년별 보기는 2026학년도 학교 연간 지도 계획의 단원을 영역에 연결해, 그 학년에서 다루는 성취수준(A·B·C)을 보여 줍니다. 과목별 보기는 학년군 전체 성취수준입니다.</p>
+  <h1>학년별 성취기준과 성취수준</h1>
+  <p class="lede">학년별 보기는 학년군 단위 성취기준을 2026학년도 학교 연간 지도 계획과 대조해 학년·학기·단원별로 나눈 것입니다. 과목별 보기는 학년군 전체의 영역 성취수준(A·B·C)입니다.</p>
 </header>
 <nav><div class="modes" role="tablist" id="modes"><button type="button" id="mode-grade">학년별</button><button type="button" id="mode-subj">과목별</button></div><div class="tabs" role="tablist" id="tabs"></div></nav>
 <div class="levels" id="levels"></div>
@@ -105,18 +111,28 @@ function renderTabs(){
   document.getElementById('mode-grade').setAttribute('aria-selected', mode==='grade');
   document.getElementById('mode-subj').setAttribute('aria-selected', mode==='subj');
 }
+const KIND = {'두 학년 공통':'공통','두 학년 반복·심화':'반복·심화'};
 function renderGrade(g){
   main.innerHTML = g.subjects.map(s => {
-    const used = []; s.sems.forEach(se => se.units.forEach(u => u[1].forEach(d => { if (!used.includes(d)) used.push(d) })));
     const band = SUB[s.name].bands.find(b => b.band === g.band);
-    const rows = band.rows.filter(r => used.includes(r[0]));
-    return `<section class="subj"><h2>${esc(s.name)} <small>${g.grade}학년 · ${esc(g.band)} 성취수준 적용</small></h2>
-      <div class="sems">${s.sems.map(se => `<div class="sem"><h3>${esc(se.sem)}</h3><ul>${se.units.map(u => `<li><span>${esc(u[0])}</span>
-        <span class="chips">${u[1].length ? u[1].map(d => `<span class="chip">${esc(d)}</span>`).join('') : '<span class="chip">영역 통합(탐구)</span>'}</span></li>`).join('')}</ul></div>`).join('')}</div>
-      <details open><summary>${g.grade}학년 ${esc(s.name)}에서 다루는 영역의 성취수준 (${rows.length}개 영역)</summary>
-      <div class="table">${head}${rows.map(rowHtml).join('')}</div></details></section>`;
-  }).join('');
-  note.textContent = '※ 단원명은 2026학년도 학교 연간 지도 계획 원문이고, 관련 영역 연결은 교사 검토용입니다. ' + D.missing;
+    const rows = band.rows.filter(r => s.areas.includes(r[0]));
+    const sems = [...new Set(s.stds.flatMap(x => x.sems))].sort();
+    const blocks = sems.map(se => {
+      const list = s.stds.filter(x => x.sems.includes(se));
+      return `<div class="sem"><h3>${esc(se)} · ${list.length}개</h3><ul>${list.map(x => {
+        const u = x.units.filter(t => x.sems.length < 2 || t.startsWith(se[0])).map(t => t.replace(/^\d학기 /,''));
+        return `<li><span class="std"><b>${esc(x.code)}</b> ${esc(x.text)}</span>
+          <span class="chips"><span class="chip unit">${esc(u.join(' / '))}</span>${KIND[x.kind] ? `<span class="chip k">${KIND[x.kind]}</span>` : ''}</span></li>`;
+      }).join('')}</ul></div>`;
+    }).join('');
+    return `<section class="subj"><h2>${esc(s.name)} <small>${g.grade}학년 · 성취기준 ${s.stds.length}개</small></h2>
+      <div class="sems">${blocks}</div>
+      ${rows.length ? `<details><summary>${g.grade}학년 ${esc(s.name)} 영역 성취수준 (${esc(g.band)} 기준)</summary>
+      <div class="table">${head}${rows.map(rowHtml).join('')}</div></details>` : ''}</section>`;
+  }).join('') + (g.grade >= 5 ? `<section class="subj"><h2>아직 배치하지 못한 성취기준 <small>5~6학년군 · 2학기 계획서 미제출 · ${D.unplaced.length}개</small></h2>
+      <details><summary>목록 펼치기</summary><div class="sem"><ul>${D.unplaced.map(x => `<li><span class="std"><b>${esc(x.code)}</b> ${esc(x.text)}</span>
+      <span class="chips"><span class="chip">${esc(x.subj)} · ${esc(x.group)}</span></span></li>`).join('')}</ul></div></details></section>` : '');
+  note.textContent = '※ 성취기준은 2022 개정 교육과정 원문이고, 학기·단원은 2026학년도 학교 연간 지도 계획과 대조해 배치했습니다(자동 대조 + 교사 검토 보정). ' + D.missing;
 }
 function renderSubject(s){
   main.innerHTML = s.bands.map(b => `
