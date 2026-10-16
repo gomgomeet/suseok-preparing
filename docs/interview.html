@@ -1,0 +1,626 @@
+<title>수석교사 심층면접 연습실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Nanum+Pen+Script&display=swap">
+<style>
+/* Layout: one exam-desk column. 모드 전환(심층면접 | 수업 설계) → 문제 카드 → 단계 패널. 근거 자료는 돌아보기 단계에서 원고 메모처럼 붙는다. */
+:root{
+  --paper:#F5F6F2; --card:#FFFFFF; --ink:#1D2730; --muted:#5E6A72; --line:#D9DDD6;
+  --pen:#C4372C; --pen-soft:#F7E3E0; --sage:#2E6B62; --sage-soft:#E1EEEA; --warn:#B7791F; --clip:#FFF6DC;
+  --f-q:"Gowun Batang","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+  --f-pen:"Nanum Pen Script","Gowun Batang",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#161B1F; --card:#1F262B; --ink:#E9ECE8; --muted:#9CA8AE; --line:#334047;
+  --pen:#F07A6E; --pen-soft:#3A2422; --sage:#6FC0B2; --sage-soft:#1E3330; --warn:#E3AE5A; --clip:#2E2A1E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#161B1F; --card:#1F262B; --ink:#E9ECE8; --muted:#9CA8AE; --line:#334047;
+  --pen:#F07A6E; --pen-soft:#3A2422; --sage:#6FC0B2; --sage-soft:#1E3330; --warn:#E3AE5A; --clip:#2E2A1E; color-scheme:dark}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:800px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+h1{font-family:var(--f-q);font-size:1.55rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.86rem;margin:2px 0 0}
+.score-chip{font-family:var(--f-num);font-size:.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.modes{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;align-self:flex-start;background:var(--card)}
+.modes button{font:inherit;font-weight:600;font-size:.9rem;border:0;background:transparent;color:var(--muted);padding:8px 18px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{font:inherit;font-size:.86rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab .new{font-family:var(--f-pen);color:var(--pen);font-size:1.05rem;margin-left:4px}
+.tab[aria-pressed="true"] .new{color:var(--paper)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.qmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.area{font-size:.74rem;letter-spacing:.06em;font-weight:600;color:var(--sage);background:var(--sage-soft);padding:2px 9px;border-radius:3px}
+.qno{font-family:var(--f-num);font-size:.78rem;color:var(--muted)}
+.qtext{font-family:var(--f-q);font-size:1.22rem;line-height:1.65;margin:0;text-wrap:pretty}
+.qactions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font-size:.9rem;font-weight:600;border-radius:5px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.primary{background:var(--sage);border-color:var(--sage);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#0F1A18}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0F1A18}}
+.btn.pen{background:var(--pen);border-color:var(--pen);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.step{padding:10px 12px;font-size:.84rem;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;min-width:0}
+.step:last-child{border-right:0}
+.step b{font-family:var(--f-num);font-weight:600}
+.step.on{color:var(--ink);background:var(--sage-soft);font-weight:600}
+.step.done{color:var(--sage)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.timer-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.timer{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:3.2rem;font-weight:600;line-height:1;letter-spacing:-.02em}
+.timer.low{color:var(--warn)} .timer.over{color:var(--pen)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--sage);width:0;transition:width .25s linear}
+.bar.over>i{background:var(--pen)}
+.settings{display:flex;flex-wrap:wrap;gap:14px;font-size:.84rem;color:var(--muted);align-items:center}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+.memo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.memo label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted);min-width:0}
+.memo label span{font-weight:400}
+.memo .full{grid-column:1/-1}
+textarea,input[type=text]{font:inherit;font-size:.92rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;resize:vertical;width:100%;box-sizing:border-box}
+.cues{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cue{border:1px dashed var(--line);border-radius:4px;padding:8px 10px;font-size:.84rem;min-width:0;overflow-wrap:anywhere}
+.cue em{display:block;font-style:normal;font-size:.72rem;letter-spacing:.05em;color:var(--sage);font-weight:600}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 5px;background:var(--paper)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+.checks label{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;cursor:pointer}
+.checks input{margin-top:5px;accent-color:var(--sage)}
+.kw{display:flex;flex-wrap:wrap;gap:6px}
+.kw span{font-size:.82rem;border:1px solid var(--line);border-radius:3px;padding:2px 8px;background:var(--paper)}
+.sect-h{font-size:.78rem;letter-spacing:.06em;font-weight:700;color:var(--muted);margin:0}
+/* 근거 카드: 원고에 붙인 포스트잇 */
+.refs{display:flex;flex-direction:column;gap:8px}
+.ref{background:var(--clip);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:0 4px 4px 0;padding:9px 12px;font-size:.88rem;line-height:1.55}
+.ref cite{display:block;font-style:normal;font-family:var(--f-num);font-size:.72rem;color:var(--muted);margin-top:3px}
+.fb{border-left:3px solid var(--pen);background:var(--pen-soft);padding:14px 16px;border-radius:0 4px 4px 0;display:flex;flex-direction:column;gap:8px}
+.fb .score{font-family:var(--f-pen);font-size:2.3rem;line-height:1;color:var(--pen)}
+.fb p,.fb li{font-size:.92rem;margin:0}
+.fb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.fb .better{font-family:var(--f-q);font-size:.98rem;line-height:1.75;white-space:pre-wrap}
+.pen{font-family:var(--f-pen);color:var(--pen);font-size:1.25rem;line-height:1.25}
+.history{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.history summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.hlist{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column}
+.hlist li{display:grid;grid-template-columns:70px 1fr 64px 60px;gap:10px;font-size:.84rem;padding:7px 0;border-top:1px solid var(--line);align-items:baseline}
+.hlist .n{font-family:var(--f-num);font-variant-numeric:tabular-nums;color:var(--muted);font-size:.78rem}
+.hlist .q{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--muted);font-size:.86rem;margin:10px 0 0}
+/* 수업 설계 모드 */
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font-size:.86rem;color:var(--muted)}
+.filters label{display:flex;gap:6px;align-items:center}
+.std-code{font-family:var(--f-num);font-weight:600;color:var(--sage);margin-right:6px}
+.place{font-size:.88rem;color:var(--muted);margin:0}
+.place b{color:var(--ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border:1px solid var(--warn);color:var(--warn);border-radius:3px;padding:1px 7px}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ladder label{border-top:3px solid var(--sage);padding-top:6px}
+@media (max-width:560px){
+  .memo,.checks{grid-template-columns:1fr}
+  .cues,.ladder{grid-template-columns:1fr 1fr}
+  .timer{font-size:2.6rem}
+  .step{font-size:.76rem;padding:8px}
+  .hlist li{grid-template-columns:56px 1fr 52px}
+  .hlist li .self{display:none}
+}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>심층면접 연습실</h1>
+      <p class="sub" id="subLine">문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인</p>
+    </div>
+    <span class="score-chip" id="todayChip">오늘 0문항</span>
+  </header>
+
+  <div class="modes" role="group" aria-label="연습 종류">
+    <button type="button" id="modeIv" aria-pressed="true">심층면접</button>
+    <button type="button" id="modeDs" aria-pressed="false">수업 설계 연습</button>
+  </div>
+
+  <!-- ===== 심층면접 ===== -->
+  <div id="ivView" style="display:contents">
+  <nav class="tabs" id="tabs" aria-label="평가 영역"></nav>
+
+  <section class="qcard" aria-live="polite">
+    <div class="qmeta"><span class="area" id="qArea"></span><span class="qno" id="qNo"></span></div>
+    <p class="qtext" id="qText"></p>
+    <div class="qactions">
+      <button class="btn" id="drawBtn">다른 문항 뽑기</button>
+      <button class="btn" id="nextBtn">다음 문항 순서대로</button>
+    </div>
+  </section>
+
+  <div class="steps" aria-hidden="true">
+    <div class="step" id="st1"><b>1</b> 구상 메모</div>
+    <div class="step" id="st2"><b>2</b> 구술 답변</div>
+    <div class="step" id="st3"><b>3</b> 돌아보기</div>
+  </div>
+
+  <section class="panel" id="p1">
+    <div class="timer-row">
+      <div class="timer" id="t1">1:00</div>
+      <div class="settings">
+        <label>구상 시간 <select id="prepSel"><option value="30">30초</option><option value="60" selected>1분</option><option value="90">1분 30초</option><option value="120">2분</option></select></label>
+        <label>답변 시간 <select id="ansSel"><option value="90">1분 30초</option><option value="120" selected>2분</option><option value="150">2분 30초</option></select></label>
+      </div>
+    </div>
+    <div class="bar" id="b1"><i></i></div>
+    <div class="memo">
+      <label for="m1">결론 1문장 <span>"~하겠습니다"로</span><textarea id="m1" rows="2" placeholder="예) 학생 배움을 기준으로 두 선생님의 합의안을 만들겠습니다."></textarea></label>
+      <label for="m2">원칙·근거 <span>교육과정, 법령, 정책 자료</span><textarea id="m2" rows="2" placeholder="예) 2025 질문기반 탐구수업: 준비–탐구–정리–실천"></textarea></label>
+      <label for="m3">내 경험 <span>실제로 해 본 일 1개</span><textarea id="m3" rows="2" placeholder="예) 학년부장 때 두 방식을 한 단원씩 시범 운영"></textarea></label>
+      <label for="m4">수석교사로서 확산 <span>누가·언제·무엇을</span><textarea id="m4" rows="2" placeholder="예) 협의회 진행 → 시범 운영 → 성찰 → 학년 교육과정 반영"></textarea></label>
+    </div>
+    <div class="qactions">
+      <button class="btn primary" id="startPrep">구상 시작</button>
+      <button class="btn" id="skipPrep">바로 답변하기</button>
+      <button class="btn" id="peekRef">근거 미리 보기</button>
+    </div>
+    <div class="refs" id="peekBox" hidden></div>
+  </section>
+
+  <section class="panel" id="p2" hidden>
+    <div class="timer-row">
+      <div class="timer" id="t2">2:00</div>
+      <div class="qactions"><button class="btn pen" id="stopAns">답변 끝</button></div>
+    </div>
+    <div class="bar" id="b2"><i></i></div>
+    <div class="cues" id="cues"></div>
+    <label for="transcript" class="sect-h">말한 내용 받아쓰기 (선택, AI 채점에 사용)</label>
+    <textarea id="transcript" rows="6" placeholder="소리 내어 말하면서 음성 입력을 켜 두세요. 받아쓴 글이 여기에 쌓입니다."></textarea>
+    <p class="hint"><strong style="color:var(--pen)">답변이 시작되면 커서가 자동으로 이 칸에 들어갑니다.</strong> 바로 <kbd>Win</kbd> + <kbd>H</kbd>(휴대폰은 키보드 마이크 버튼)를 누르고 말하세요. 한 번 켜 두면 2분 동안 계속 받아씁니다.</p>
+  </section>
+
+  <section class="panel" id="p3" hidden>
+    <div class="timer-row">
+      <div>
+        <p class="sect-h">답변 시간</p>
+        <div class="timer" id="t3" style="font-size:2.2rem">0:00</div>
+      </div>
+      <div class="qactions">
+        <button class="btn" id="retryBtn">같은 문항 다시</button>
+        <button class="btn primary" id="newBtn">새 문항</button>
+      </div>
+    </div>
+    <div>
+      <p class="sect-h" style="margin-bottom:8px">스스로 점검</p>
+      <div class="checks" id="checks"></div>
+    </div>
+    <div>
+      <p class="sect-h" style="margin-bottom:8px">이 문항의 핵심 키워드</p>
+      <div class="kw" id="kw"></div>
+    </div>
+    <div id="refWrap" hidden>
+      <p class="sect-h" style="margin-bottom:8px">답변에 쓸 근거 자료</p>
+      <div class="refs" id="refs"></div>
+    </div>
+    <div class="qactions" id="aiRow" hidden>
+      <button class="btn pen" id="aiBtn">빨간펜 채점 받기</button>
+      <span class="hint" id="aiNote">받아쓴 내용(없으면 메모)으로 10점 만점 채점합니다.</span>
+    </div>
+    <div class="fb" id="fb" hidden></div>
+  </section>
+
+  <details class="history" id="histBox">
+    <summary>연습 기록</summary>
+    <ul class="hlist" id="hlist"></ul>
+    <p class="empty" id="hEmpty">아직 기록이 없어요. 첫 문항을 끝내면 여기에 쌓입니다.</p>
+  </details>
+  </div>
+
+  <!-- ===== 수업 설계 연습 ===== -->
+  <div id="dsView" style="display:contents" hidden>
+  <section class="qcard">
+    <div class="filters">
+      <label>학년 <select id="fGrade"><option value="">전체</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+      <label>교과 <select id="fSubj"><option value="">전체</option></select></label>
+      <label><input type="checkbox" id="fRef"> 근거 사례 있는 성취기준만</label>
+    </div>
+    <div class="qmeta"><span class="area" id="dsArea"></span><span class="qno" id="dsNo"></span></div>
+    <p class="qtext" id="dsText"></p>
+    <p class="place" id="dsPlace"></p>
+    <div class="chips" id="dsRefs"></div>
+    <div class="qactions">
+      <button class="btn" id="dsDraw">다른 성취기준 뽑기</button>
+      <label class="settings">설계 시간 <select id="dsTime"><option value="0">제한 없음</option><option value="300">5분</option><option value="600" selected>10분</option><option value="900">15분</option></select></label>
+      <span class="timer" id="dsTimer" style="font-size:1.6rem">10:00</span>
+      <button class="btn primary" id="dsStart">타이머 시작</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="hint">2025 「질문기반 탐구수업」 3단계(핵심 아이디어 → 핵심 문장 → 핵심 질문 → 탐구 질문)와 경기도형 4단계(준비–탐구–정리–실천)로 한 단원을 설계합니다.</p>
+    <div class="memo">
+      <label class="full" for="d1">핵심 문장 <span>핵심 아이디어를 우리 반 맥락으로 재진술한 일반화</span><textarea id="d1" rows="2"></textarea></label>
+      <label class="full" for="d2">핵심 질문 <span>단원의 '큰 물음'</span><textarea id="d2" rows="2"></textarea></label>
+    </div>
+    <div class="memo" style="grid-template-columns:repeat(3,1fr)">
+      <label for="d3">탐구 질문 · 사실적<textarea id="d3" rows="3"></textarea></label>
+      <label for="d4">탐구 질문 · 개념적<textarea id="d4" rows="3"></textarea></label>
+      <label for="d5">탐구 질문 · 논쟁적<textarea id="d5" rows="3"></textarea></label>
+    </div>
+    <div class="ladder memo">
+      <label for="d6">준비하기<textarea id="d6" rows="3" placeholder="삶과 연결, 학생 질문 만들기"></textarea></label>
+      <label for="d7">탐구하기<textarea id="d7" rows="3" placeholder="조사·실험·토의"></textarea></label>
+      <label for="d8">정리하기<textarea id="d8" rows="3" placeholder="학생이 만드는 일반화 문장"></textarea></label>
+      <label for="d9">실천하기<textarea id="d9" rows="3" placeholder="전이 질문, 성찰"></textarea></label>
+    </div>
+    <div class="memo">
+      <label class="full" for="d10">평가 <span>징검다리평가와 전이 과제, 평가요소·방법</span><textarea id="d10" rows="2"></textarea></label>
+    </div>
+    <div class="qactions">
+      <button class="btn pen" id="dsAi" hidden>빨간펜 설계 피드백</button>
+      <button class="btn" id="dsClear">설계 지우기</button>
+      <span class="hint" id="dsNote"></span>
+    </div>
+    <div class="fb" id="dsFb" hidden></div>
+    <details>
+      <summary class="sect-h" style="cursor:pointer">설계 점검표 (2025 질문기반 탐구수업)</summary>
+      <ul class="hint" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
+        <li>핵심 아이디어를 우리 학급 맥락으로 재진술한 핵심 문장이 있는가</li>
+        <li>핵심 질문이 핵심 문장의 의미를 풀어내는 '큰 물음'인가</li>
+        <li>탐구 질문이 사실 → 개념 → 논쟁으로 이어지는가</li>
+        <li>정리하기에서 학생이 일반화 문장을 만드는가</li>
+        <li>실천하기에 전이 질문과 성찰(예전 생각–지금 생각)이 있는가</li>
+        <li>학생 질문을 받는 장치(하브루타, 질문 형성 기법, 꼬리잡기)가 있는가</li>
+        <li>징검다리평가와 전이 평가가 단원 흐름 안에 놓였는가</li>
+      </ul>
+    </details>
+  </section>
+
+  <details class="history">
+    <summary>설계 기록</summary>
+    <ul class="hlist" id="dsHist"></ul>
+    <p class="empty" id="dsEmpty">아직 기록이 없어요. 피드백을 받으면 여기에 쌓입니다.</p>
+  </details>
+  </div>
+</div>
+
+<script>
+/* 근거 자료 약칭: W6=깊이있는 수업 웹진 6호(2026.8.), W5=웹진 5호(2026.6.), Q25=2025 질문기반 탐구수업, PF=폰프리 스쿨 실천 안내서(2026) */
+const SRC={W6:"웹진 「깊수다」 6호(2026.8.)",W5:"웹진 「깊수다」 5호(2026.6.)",Q25:"2025 질문기반 탐구수업",PF:"폰프리 스쿨 실천 안내서(2026)"};
+const NEW_AREA="깊이있는 수업";
+const Q=[
+ // 동료 교사 지원
+ {a:"동료 교사 지원",t:"같은 학년의 경력 교사와 신규 교사가 학년 교육과정 운영 방식을 두고 갈등을 겪고 있습니다. 수석교사로서 어떻게 조정하겠습니까?",k:["학생 배움이라는 공통 기준","개별 경청","협의회 진행(공통점·차이점)","두 방식 시범 운영","성찰 후 반영"],
+  r:[["W5","p.6~11","단원 중심 통합 설계: '이 단원에서 학생이 무엇을 깊이 이해해야 하나'를 공통 출발점으로 두면 방식 논쟁이 배움 논의로 바뀐다."]]},
+ {a:"동료 교사 지원",t:"수업 컨설팅을 원하지 않는 동료 교사의 수업 전문성 신장을 어떻게 지원하겠습니까?",k:["자율성 존중","내 수업 먼저 공개","부담 없는 자료 나눔","관심 주제 먼저 묻기","작은 성공 경험"],
+  r:[["W5","p.18","컨설팅은 수업자의 의도·학생 특성을 충분히 듣는 대화에서 출발해 수업자가 가진 큰 그림을 함께 구조화한다(양평초 수석교사)."]]},
+ {a:"동료 교사 지원",t:"수석교사가 되면 경감된 수업시수(1/2)를 동료 교사 지원에 어떻게 활용하겠습니까?",k:["찾아가는 지원","신규·저경력 멘토링","요청형 컨설팅","공동 수업 설계","수업 나눔 주간"],
+  r:[["W6","p.52","수석교사가 학교 안 탐구공동체를 조직해 설계–실행–촬영–성찰을 함께하고, 이듬해 운영을 동료에게 넘겨 리더십을 나눈다(오마초 수석교사)."]]},
+ {a:"동료 교사 지원",t:"신규 교사가 수업 준비는 열심히 하지만 학급 경영에 어려움을 겪으며 \"교사가 맞지 않는 것 같다\"고 털어놓았습니다. 어떻게 지원하겠습니까?",k:["정서적 지지·경청","구체적 학급 경영 도구","정기 멘토링","교원 상담·치유 지원 연계","작은 성공 경험"]},
+ {a:"동료 교사 지원",t:"수업 공개를 부담스러워하며 거부하는 경력 교사가 있습니다. 어떻게 하겠습니까?",k:["부담의 이유 경청","부분 공개·짧은 공개","관찰 초점을 수업자가 선택","강점 중심 피드백","수석 수업 먼저 공개"],
+  r:[["W6","p.22","10년 넘게 자기 방식이 굳은 교사도 '내 수업을 바깥에서 보고 싶다'는 계기로 깊이있는 수업에 도전했다(안양덕현초 사례) → 관찰 초점을 수업자가 정하게 한다."]]},
+ {a:"동료 교사 지원",t:"학교의 전문적 학습공동체가 형식적으로 운영되고 있습니다. 수석교사로서 어떻게 활성화하겠습니까?",k:["교사가 고른 주제","실천-성찰 순환","학생 배움 자료로 대화","작은 성공 공유","리더십 나누기"],
+  r:[["W6","p.52","'질문하는 교사들', '토론하는 교사들'처럼 공동 관심사로 묶인 공동체가 해마다 수업 공개와 연구로 함께 성장했다."],["W5","p.6~11","공동체 주제로 '단원 하나를 함께 통합 설계'하면 실천–성찰 순환이 자연스럽게 생긴다."]]},
+ {a:"동료 교사 지원",t:"에듀테크 활용에 거부감이 있는 동료 교사들을 어떻게 지원하겠습니까?",k:["도구보다 수업 목적","쉬운 도구 하나부터","함께 설계·함께 수업","디지털 윤리·개인정보","실패해도 괜찮은 분위기"],
+  r:[["W5","p.60~65","AI 마음 거울(2학년): 엔트리 분류 모델을 사회정서학습의 공감 언어와 끊김 없이 연결 — 도구가 아니라 배움 목적이 중심(청솔초 수석교사 컨설팅)."]]},
+ {a:"동료 교사 지원",t:"동료 교사가 학부모 민원으로 크게 위축되어 수업에 자신감을 잃었습니다. 어떻게 돕겠습니까?",k:["정서적 지지","교권 보호 절차 안내","사실 기록","관리자·교권보호 기구 연계","수업 자신감 회복 지원"]},
+ {a:"동료 교사 지원",t:"수업 컨설팅 후 피드백에 마음이 상한 동료 교사와 관계가 서먹해졌습니다. 어떻게 하겠습니까?",k:["먼저 다가가 경청","내 피드백 방식 성찰","강점 기반 피드백","수업자 주도 컨설팅","관계 회복 후 재설계"],
+  r:[["W6","p.52","수석교사가 설계·문서는 도울 수 있어도 수업자의 마음의 부담은 덜어주지 못했다는 성찰 → 컨설팅은 함께 만들고 함께 실행하는 동반 과정."]]},
+ {a:"동료 교사 지원",t:"학년 교사들이 과정 중심 평가를 어려워합니다. 수석교사로서 어떻게 지원하겠습니까?",k:["성취기준-평가 정렬","채점 기준 공동 개발","피드백 방법","평가 사례 공유","학생 성장 기록"],
+  r:[["W5","p.9~10","배움 형성 지점마다 징검다리평가, 단원 끝에는 배운 것으로 판단·해결하는 전이 평가를 놓는다."],["W5","p.53","생산과 소비(4학년 사회): 평가요소 하나에 매우잘함~노력요함 4단계 성취수준을 진술한 '학습으로의 평가'."]]},
+ {a:"동료 교사 지원",t:"생성형 AI 활용 수업을 걱정하는 동료 교사들에게 어떻게 안내하겠습니까?",k:["교육 목적 우선","연령 제한·개인정보","교사용 도구로 먼저","비판적 활용 지도","실제 수업 사례"],
+  r:[["W6","p.76~81","내리숲초 AI 질문 도구: 학생 질문을 무시하지 않고 탐구 가능한 문장으로 다듬어 되돌려 줌, 교사 모드는 발문 세트와 성취기준 제시. 인공지능윤리교육 연구학교와 연계."]]},
+ {a:"동료 교사 지원",t:"수석교사에게 가장 필요한 역량 한 가지를 꼽고, 그 역량을 어떻게 발휘하겠습니까?",k:["역량 하나 명확히","그 이유","내 경험","구체적 실천 계획"],
+  r:[["W5","p.11","통합 설계의 중심은 교사의 교육과정 전문성 — 교사는 정해진 활동의 실행자가 아니라 설계자다."]]},
+ // 학생 지도
+ {a:"학생 지도",t:"쉬는 시간 사소한 다툼이 보호자의 학교폭력 신고 요구로 번지려 합니다. 담임교사로서 학생들의 관계 회복을 위해 어떻게 지도하겠습니까?",k:["신고 접수·학교장 보고","절차를 숨기지 않기","학교장 자체해결 요건","회복적 대화","보호자 개별 상담"]},
+ {a:"학생 지도",t:"수업 시간마다 활동을 거부하고 엎드려 있는 학생이 있습니다. 상담과 학습지도를 어떻게 하겠습니까?",k:["원인 파악(학습·정서·가정)","관계 형성","수준 맞춤 과제","작은 성공","보호자·Wee클래스 연계"],
+  r:[["W6","p.22","말수가 적고 위축된 학급에서는 '정서적 안정감 위의 탐구'(마음챙김, 갤러리 워크)로 자기 생각을 꺼내도 괜찮다는 감각부터 만든다."]]},
+ {a:"학생 지도",t:"초등학생의 진로 교육은 무엇을 중심으로 해야 한다고 생각하며, 교실에서 어떻게 실천하겠습니까?",k:["자기 이해","다양한 세계 탐색","교과 연계","강점 발견","진로 포트폴리오"],
+  r:[["W5","p.22~29","'작은 선택을 쌓아 만들어 가는 나다움'(3학년 도덕+사회 22차시): 나의 조각 카드 → 나의 연표 → 되고 싶은 나와 성실한 선택, 나다움 박물관 발표."]]},
+ {a:"학생 지도",t:"수업 중 교사에게 반복적으로 거친 말을 하며 수업을 방해하는 학생이 있습니다. 어떻게 지도하겠습니까?",k:["다른 학생의 학습권","학생생활지도 고시 절차","감정 아닌 행동에 대응","원인 상담","보호자 협력"]},
+ {a:"학생 지도",t:"학급 단체 대화방에서 한 학생을 따돌리는 정황을 발견했습니다. 어떻게 하겠습니까?",k:["피해 학생 보호 우선","증거 보존","신고·보고 절차","가해 학생 지도","디지털 시민교육"]},
+ {a:"학생 지도",t:"상담 중 학생이 \"사라지고 싶다\"는 말을 했습니다. 어떻게 대응하겠습니까?",k:["즉시 안전 확인","혼자 판단하지 않기","보호자·Wee클래스·전문기관 연계","비밀 보장의 한계 안내","지속 관찰"]},
+ {a:"학생 지도",t:"주의 집중이 어려워 수업 흐름을 자주 끊는 학생이 있습니다. 어떻게 지도하겠습니까?",k:["수업 구조화","자리·과제 길이 조정","즉각적 긍정 피드백","보호자 협력","전문가 협의"]},
+ {a:"학생 지도",t:"한국어가 서툰 다문화 가정 학생이 학습에서 소외되고 있습니다. 어떻게 지원하겠습니까?",k:["언어 지원(시각 자료·번역)","강점·문화 존중","협력 학습 짝","한국어 교육 연계","보호자 소통 방법"],
+  r:[["W5","p.47","마을 소식지(2학년): 글쓰기 중심 활동에서 소외되지 않도록 사전 조사 기간을 확보하고 사진·그림·짧은 문장 등 표현 방법을 열어 둠(가평초 수석교사 컨설팅)."]]},
+ {a:"학생 지도",t:"가정 방임이 의심되는 학생을 발견했습니다. 담임교사로서 어떻게 하겠습니까?",k:["아동학대 신고 의무자","관찰·기록","관리자 보고와 신고","학생 안전 우선","지속 지원"]},
+ {a:"학생 지도",t:"학급에 무리 짓기와 소외되는 학생이 생겼습니다. 어떻게 지도하겠습니까?",k:["관계 관찰","협력 구조 바꾸기","학급 회의","사회정서학습(SEL)","소외 학생 개별 지원"],
+  r:[["W6","p.22~23","'포용성' 개념 탐구(6학년 국어): 예·반례·특성으로 모둠별 정의 → 갤러리 워크로 정의 비교 → 내 삶의 포용성 사례 발표."]]},
+ {a:"학생 지도",t:"스마트폰·게임에 지나치게 빠진 학생을 어떻게 지도하겠습니까?",k:["자기 조절 지도","학급 약속","보호자 협력","대체 활동","전문기관 연계"],
+  r:[["PF","p.18~23","학생 주도 5단계: 스스로 생각하기 → 학급 의견 나누기 → 학생자치회 의견 모으기 → 교육공동체가 함께 정하기 → 실천하고 돌아보기."],["PF","p.27~31","'내려놓은 시간'을 독서·예술문화·스포츠(RAS)와 관계 활동으로 채운다."],["PF","p.34","약속 미이행 시 제재보다 이유 듣기와 성찰을 먼저 하는 교육적 지도."]]},
+ {a:"학생 지도",t:"회복적 생활교육을 학급에 정착시키기 위해 어떻게 하겠습니까?",k:["존중의 약속 함께 만들기","회복적 서클","갈등 해결 절차","교사의 언어","동료와 사례 나눔"],
+  r:[["W6","p.46~47","그림책 속 '해녀 수칙'에서 출발해 수칙의 뜻과 필요성을 탐구하고 우리 반 학생 수칙을 모둠 합의로 정함(4학년)."]]},
+ {a:"학생 지도",t:"기초학력이 부족한 학생을 어떻게 지도하겠습니까?",k:["진단","맞춤 지도","협력 수업·보조 인력","성장 확인과 칭찬","보호자 협력"],
+  r:[["W6","p.56","규칙 찾기(4학년 수학) 컨설팅: 학생마다 알아차리는 시점이 달라 단계적 실마리를 준비하고 표·그림 등 표현 방식을 열어 둠."]]},
+ // 수업·컨설팅
+ {a:"수업·컨설팅",t:"\"학생 참여가 낮다\"고 고민하는 교사의 수업을 관찰한 뒤, 사후 협의회에서 가장 먼저 무엇을 말하겠습니까?",k:["강점부터","수업자 의도 질문","관찰 증거로 말하기","수업자가 해법 찾기","다음 약속"],
+  r:[["W6","p.7","질문은 알던 생각과 어긋나는 사실·예상과 다른 결과를 만날 때 생긴다 → 참여가 낮다면 도입에 인지적 갈등 장면이 있었는지부터 함께 본다."]]},
+ {a:"수업·컨설팅",t:"좋은 수업이란 무엇이라고 생각하며, 그런 수업을 위해 어떻게 하고 있습니까?",k:["학생의 배움 중심","깊이 있는 학습","내 수업 사례","학교로 확산"],
+  r:[["W6","p.11","질문 없는 탐구는 시킨 과제가 되고, 탐구 없는 질문은 활동지 위의 물음표로 남는다(미사초 수석교사)."]]},
+ {a:"수업·컨설팅",t:"2022 개정 교육과정의 핵심을 수업에서 어떻게 구현하겠습니까?",k:["깊이 있는 학습","역량 함양","삶과 연계","디지털 기초소양","학생 주도성"],
+  r:[["W5","p.7~8","깊이있는 학습은 많은 내용을 빠르게 다루는 수업이 아니다. 핵심을 붙들고 생각·질문·설명·판단하며 삶과 연결해 전이하는 학습."]]},
+ {a:"수업·컨설팅",t:"디지털 도구를 활용한 수업을 컨설팅할 때 무엇을 중점으로 보겠습니까?",k:["목적과 도구의 정렬","학생 사고가 드러나는가","참여의 질","윤리·개인정보","대안 제시"],
+  r:[["W6","p.14~15","미디어 홍수(6학년 사회): 하이러닝으로 모둠별 사례를 주장–근거–더 필요한 정보로 분석, 디지털 도구가 학생 사고를 드러내는 데 쓰임."]]},
+ {a:"수업·컨설팅",t:"학교에서 수업 나눔 협의회를 어떻게 운영하겠습니까?",k:["수업자 중심","학생 배움 관찰","질문형 대화","강점과 제안","실천 약속"],
+  r:[["W5","p.18","컨설팅 순서: 교육과정 분석 → 단원 설계 → 차시 계획 → 본차시 구체화 → 자료 점검, 유사 사례 영상 공유."]]},
+ // 깊이있는 수업 (새 근거자료 기반)
+ {a:NEW_AREA,t:"학생이 만든 질문을 실제 수업의 탐구 질문으로 연결하려면 어떻게 하겠습니까? 질문 만들기 활동이 형식화되는 문제도 함께 말해 보세요.",k:["질문이 '생기는' 장면 설계","묶고·합쳐 공동 탐구질문","질문 개수보다 탐구로 이어짐","하브루타·질문 형성 기법","학생 질문이 수업에 쓰였음을 확인"],
+  r:[["W6","p.7~8","학생이 질문을 만든 것과 질문이 생긴 것은 다르다. 비슷한 질문을 묶고 교과 핵심과 연결해 학급의 탐구질문으로 재구성하면 학생이 질문의 주체가 된다."],["W5","p.14~15","동물농장(6학년 사회): 질문 만들기 → 분류 → 비슷한 질문 묶기 → 탐구질문 확정, 생각수직선으로 입장 변화 확인."],["Q25","Ⅱ","까바·까만·까주 하브루타 놀이, 질문 형성 기법(질문 규칙 → 만들기 → 열린·닫힌 바꾸기 → 우선순위)."]]},
+ {a:NEW_AREA,t:"핵심 아이디어에서 핵심 질문과 탐구 질문을 어떻게 설계하는지 한 단원을 예로 설명해 보세요.",k:["핵심 아이디어 → 핵심 문장 재진술","핵심 문장 → 핵심 질문","사실·개념·논쟁 탐구 질문","학년 눈높이","의도가 담긴 핵심어"],
+  r:[["Q25","Ⅲ 1~3단계","① 핵심 아이디어를 학급 맥락으로 재진술해 핵심 문장 ② 핵심 문장을 '큰 물음'인 핵심 질문으로 ③ 사실적·개념적·논쟁적 탐구 질문으로 구체화."],["W5","p.37","공공미술(6학년) 컨설팅: 의도가 담긴 핵심어(공공미술·행동·자발성·변화)를 넣어 핵심 문장을 다시 진술하고, 개념적 질문을 '관계 중심'으로 정교화."]]},
+ {a:NEW_AREA,t:"'단원 중심 통합 설계'가 왜 필요한지 설명하고, 수석교사로서 학교에 어떻게 확산하겠습니까?",k:["차시의 합 ≠ 단원의 배움","기대하는 학습 결과 먼저","배움의 덩어리","징검다리평가와 전이","교사는 설계자"],
+  r:[["W5","p.6~11","좋은 차시가 모여도 단원 핵심 이해로 이어지지 않으면 배움이 깊어지지 않는다. 활동에서 출발하지 않고 '무엇을 깊이 이해해야 하나'에서 출발해 배움의 흐름·평가·차시 질문을 맞춘다."],["W5","p.8","배움중심수업·주제중심 프로젝트·교육과정-수업-평가-기록 일체화를 단원과 전이까지 넓히는 보완."],["W5","p.70~71","글빛 마을 탐험(2학년): 배움의 증거(도착점)를 먼저 정의하고 경로를 설계."]]},
+ {a:NEW_AREA,t:"징검다리평가와 전이 평가를 한 단원 안에서 어떻게 설계하겠습니까?",k:["배움 형성 지점 확인","전이 과제(삶의 맥락)","성취수준 진술","평가가 다음 수업을 바꿈","간소화는 전문성"],
+  r:[["W5","p.9~10","징검다리평가로 배움이 어디까지 형성됐는지 확인하고, 마지막엔 배운 것으로 생각·판단·해결하는 전이 과제로 배움의 작동을 본다."],["Q25","Ⅴ 4학년","착한 소비 캠페인 수행과제와 인권 UCC 과제처럼 실천하기 단계를 총괄평가로 연결."]]},
+ {a:NEW_AREA,t:"경기도형 질문기반 탐구수업 4단계를 설명하고, 단계마다 쓸 수 있는 사고 전략을 하나씩 말해 보세요.",k:["준비하기","탐구하기","정리하기(일반화)","실천하기(전이)","전 과정 성찰"],
+  r:[["Q25","Ⅰ·Ⅳ","준비(See-Think-Wonder, 네 모퉁이 토론, 스펙트럼, 프레이어 모델) → 탐구(조사, 버블 맵) → 정리(개념지도, 흐름 다이어그램, 일반화 문장) → 실천(전이 질문, 연결–확장–도전 성찰)."],["W6","p.38~39","별자리(6학년 과학): 규칙 발견 → 가설 토의 → 모형 실험 → 결과 비교와 모형의 한계 → 과학자의 탐구와 비교·성찰."]]},
+ {a:NEW_AREA,t:"활동은 풍성한데 수업이 끝나도 개념이 남지 않는다는 교사를 어떻게 컨설팅하겠습니까?",k:["활동→개념 정리 과정","분류 기준 설명하기","일반화 문장","차시 간 연결","수업자가 해법 찾기"],
+  r:[["W5","p.56","생산과 소비(4학년) 컨설팅: 활동의 양보다 활동이 개념으로 정리되는 과정 — 분류에서 그치지 않고 기준을 설명하고 그 기준이 개념 뜻과 어떻게 이어지는지 말하게 함."],["W6","p.8","조사·실험·토의에 참여했다는 사실만으로 탐구가 되지 않는다. 학생의 사고와 연결되어 생각의 변화를 만들 때 탐구가 된다."]]},
+ {a:NEW_AREA,t:"학생의 답을 교사가 대신 다듬어 정리해 버리는 습관이 있는 동료 교사에게 어떤 피드백을 주겠습니까?",k:["기다림의 시간","학생 언어로 정리","SOLO 사고 수준","예전 생각–지금 생각","관찰 증거로 말하기"],
+  r:[["W6","p.16","미디어 홍수 수업자 성찰: 시간 제약으로 학생 답을 교사 언어로 다듬어 준 것이 아쉬움 → 학생 스스로 의미를 구성할 시간 확보."],["W6","p.9","SOLO 분류(단일→다중→관계적→확장추상)로 학생 답의 깊이를 보고 다음 질문을 정한다."]]},
+ {a:NEW_AREA,t:"교과 통합 단원을 설계할 때 유의할 점은 무엇입니까?",k:["각 교과 핵심 아이디어 유지","활동 역할 구분","하나의 핵심 질문","재구성 성취기준 명시","평가와 일관성"],
+  r:[["W6","p.46~52","그림책 슬로 리딩(4학년 18차시): 국어·사회·도덕·미술 핵심 아이디어를 끌어와 (재)구성 성취기준으로 명시."],["W5","p.28","나다움(3학년) 컨설팅: 조각 카드는 '지금의 나에 대한 선언', 연표는 '경험이 나를 만든 인과 설명'으로 역할을 나눠 반복을 피함."]]},
+ {a:NEW_AREA,t:"학습 수준 차이가 크고 특수교육 대상 학생이 있는 학급에서 깊이있는 수업을 어떻게 하겠습니까?",k:["표현 방식 열어 두기","단계적 실마리","소수 의견 존중 발문","협력 구조","모두의 성공 경험"],
+  r:[["W5","p.47","사진·그림·짧은 문장 등 다양한 표현 방법과 충분한 사전 조사 기간."],["W6","p.30~31","2학년 이름표 붙이기·옮겨 붙이기: 1차 생각 → 친구 의견 듣기 → 수정, 소수 의견이 존중되도록 발문 설계."]]},
+ {a:NEW_AREA,t:"AI·디지털 도구를 깊이있는 수업에 활용할 때 지켜야 할 원칙은 무엇입니까?",k:["배움 목적 우선","사고를 드러내는 도구","AI의 한계 경험","디지털 시민성·윤리","학생 질문 정제"],
+  r:[["W5","p.60~61","AI 마음 거울(2학년): AI가 감정을 잘못 읽는 경험 → '따뜻한 입' 공감 대답 설계, 평가요소에 디지털 시민성(AI는 사람을 돕는 도구)."],["W6","p.76~81","AI 질문 도구가 학생 질문을 탐구 가능한 문장으로 다듬어 되돌려 줌."],["PF","p.17","규칙은 누가 정했느냐에 따라 통제도 약속도 된다 — 디지털 사용 약속도 학생 주도로."]]},
+ {a:NEW_AREA,t:"학교에서 '폰프리 스쿨'을 추진하게 되었습니다. 담임교사이자 수석교사로서 어떻게 운영하겠습니까?",k:["학생 주도 5단계","민주시민교육 기회","교육공동체 합의","내려놓은 시간 채우기","교육적 지도"],
+  r:[["PF","p.17~23","생각하기 → 의견 나누기 → 의견 모으기(학생자치회) → 함께 정하기(교직원·보호자) → 실천하고 돌아보기."],["PF","p.24","목적은 수거·보관이 아니라 학생 스스로 내려놓고 배움·관계·건강을 회복하는 문화."],["PF","부록","교과 연계: [4도03-02] 디지털 사회, [4사08-01] 학교 자치, [6국06-04] 매체 이용 성찰."]]},
+ {a:NEW_AREA,t:"정답을 확인하는 과학 수업을 '설명을 찾아가는' 탐구 수업으로 바꾸려면 어떻게 하겠습니까?",k:["가능한 설명 여러 개","모형으로 검토","모순과 한계 발견","과학자의 탐구와 비교","전이 개념(규칙성·관점)"],
+  r:[["W6","p.38~39","별자리(6학년 과학): '지구는 공전한다'를 정답으로 주지 않고 가설을 세워 모형 실험 → 결과 비교 → 모형의 한계 → 과학자의 탐구 성찰. 평가는 탐구 성찰지·발표."]]},
+ {a:NEW_AREA,t:"성취기준과 성취수준의 차이를 설명하고, 성취수준을 수업 설계와 평가에 어떻게 반영하겠습니까?",k:["성취기준=도달 목표","성취수준=도달 정도","평가요소·성취수준 진술","수준별 피드백","학습으로의 평가"],
+  r:[["W6","사례 1~6","각 과정안의 '학습으로의 평가': 평가요소 → 성취수준 → 평가방법."],["W5","p.53","4단계 성취수준 진술 예: 생산과 소비의 뜻·구분·생활 관련성을 수준별로 기술."]]},
+ {a:NEW_AREA,t:"수석교사로서 학교 안 수업 탐구공동체를 어떻게 만들고 이끌겠습니까?",k:["공동 관심사로 시작","함께 설계·실행·성찰","수업 공개 일상화","리더십 넘겨주기","외부 자료·사례 연결"],
+  r:[["W6","p.52","'오마 깊이있는 수업 탐구공동체': 수석교사가 처음 이끌고 이듬해부터 동료가 운영하도록 지원, 해마다 수업 공개와 연구."],["W5","컨설팅 6편","공통점: 핵심 문장·질문 정교화, 수업–평가 일관성, 포용, 활동→개념."]]},
+];
+const CHECKS=["결론이 첫 문장에 있었다","\"~하겠습니다\"로 확신 있게 말했다","내 실제 경험을 1개 넣었다","원칙·법령·교육과정·정책 자료 근거를 말했다","수석교사로서 확산 방법을 말했다","시간 안에 끝냈다"];
+const STD=[["[2국01-01]","중요한 내용이나 일이 일어난 순서를 고려하며 듣고 말한다.","국어","듣기⋅말하기",[[2,"2","5. 바른 말로 이야기 나누어요"]],[]],["[2국01-02]","바르고 고운 말로 서로의 감정을 나누며 듣고 말한다.","국어","듣기⋅말하기",[[2,"2","2. 서로 존중해요"]],["웹진 5호 사례6 AI 마음 거울"]],["[2국01-03]","상대의 말을 집중하여 듣고 말차례를 지키며 대화한다.","국어","듣기⋅말하기",[[2,"1","1. 만나서 반가워요!"]],[]],["[2국01-04]","자신의 경험이나 생각을 바른 자세로 발표한다.","국어","듣기⋅말하기",[[2,"1","6. 자신의 생각을 표현해요"]],[]],["[2국01-05]","듣기와 말하기에 관심과 흥미를 가진다.","국어","듣기⋅말하기",[[1,"1","5. 반갑게 인사해요"],[2,"1","1. 만나서 반가워요!"]],[]],["[2국02-01]","글자, 단어, 문장, 짧은 글을 정확하게 소리 내어 읽는다.","국어","읽기",[[1,"1","6. 또박또박 읽어요"],[1,"2","2. 낱말을 정확하게 읽어요"]],[]],["[2국02-02]","의미가 잘 드러나도록 문장과 짧은 글을 알맞게 띄어 읽는다.","국어","읽기",[[2,"1","5. 마음을 짐작해요"]],[]],["[2국02-03]","글을 읽고 중심 내용을 확인한다.","국어","읽기",[[2,"2","3. 내용을 살펴요"]],[]],["[2국02-04]","인물의 마음이나 생각을 짐작하고 이를 자신과 비교하며 글을 읽는다.","국어","읽기",[[2,"1","5. 마음을 짐작해요"]],["웹진 6호 사례3 북 큐레이터"]],["[2국02-05]","읽기에 흥미를 가지고 즐겨 읽는 태도를 지닌다.","국어","읽기",[[1,"1","6. 또박또박 읽어요"],[2,"1","4. 분위기를 살려 읽어요"]],[]],["[2국03-01]","글자와 단어를 바르게 쓴다.","국어","쓰기",[[1,"1","1. 글자를 만들어요"]],[]],["[2국03-02]","쓰기에 흥미를 가지며 자신의 생각이나 느낌을 문장으로 표현한다.","국어","쓰기",[[2,"1","6. 자신의 생각을 표현해요"]],[]],["[2국03-03]","주변 소재에 대해 소개하는 글을 쓴다.","국어","쓰기",[[2,"2","3. 내용을 살펴요 › 사물을 설명하는 글 관련 차시"]],[]],["[2국03-04]","겪은 일을 표현하는 글을 자유롭게 쓰고, 쓴 글을 함께 읽고 생각이나 느낌을 나눈다.","국어","쓰기",[[2,"1","3. 겪은 일을 나타내요"]],[]],["[2국04-01]","한글 자모의 이름과 소릿값을 알고 정확하게 발음하고 쓴다.","국어","문법",[[1,"1","1. 글자를 만들어요"],[1,"1","한글 놀이"]],[]],["[2국04-02]","소리와 표기가 다를 수 있음을 알고 단어를 바르게 읽고 쓴다.","국어","문법",[[1,"1","2. 받침이 있는 글자를 읽어요"],[1,"2","6. 문장을 읽고 써요"]],[]],["[2국04-03]","문장과 문장 부호를 알맞게 쓰고 한글에 호기심을 가진다.","국어","문법",[[1,"1","6. 또박또박 읽어요"]],[]],["[2국05-01]","말놀이, 낭송 등을 통해 말의 재미와 즐거움을 느낀다.","국어","문학",[[2,"1","2. 말의 재미가 솔솔"]],[]],["[2국05-02]","작품을 듣거나 읽으면서 느끼거나 생각한 점을 말한다.","국어","문학",[[2,"1","8. 다양한 작품을 감상해요"]],["웹진 6호 사례3 북 큐레이터"]],["[2국05-03]","작품 속 인물의 모습, 행동, 마음을 상상하여 시, 노래, 이야기, 그림 등으로 표현한다.","국어","문학",[[2,"2","1. 장면을 상상하며"]],[]],["[2국05-04]","시나 노래, 이야기에 흥미를 가진다.","국어","문학",[[1,"2","4. 감동을 나누어요"],[2,"2","8. 나도 작가"]],[]],["[2국06-01]","일상의 다양한 매체와 매체 자료에 흥미와 관심을 가진다.","국어","매체",[[2,"2","6. 매체를 경험해요"]],[]],["[2국06-02]","일상의 경험과 생각을 글과 그림으로 표현한다.","국어","매체",[[2,"2","6. 매체를 경험해요"]],[]],["[4국01-01]","중요한 내용과 주제를 파악하며 듣고 그 내용을 요약한다.","국어","듣기⋅말하기",[[3,"1","4. 중요한 내용을 찾아요 › 1. 중요한 내용을 파악하며 듣기"]],[]],["[4국01-02]","원인과 결과의 관계를 고려하여 내용을 예측하며 듣고 말한다.","국어","듣기⋅말하기",[[4,"2","6. 상상의 날개 › 1. 원인과 결과를 생각하며 듣기"]],[]],["[4국01-03]","상황에 적절한 준언어⋅비언어적 표현을 활용하여 듣고 말한다.","국어","듣기⋅말하기",[[3,"2","4. 서로 존중하며 대화해요 › 1. 높임 표현을 바르게 사용하기"]],[]],["[4국01-04]","상황과 상대의 입장을 이해하고 예의를 지키며 대화한다.","국어","듣기⋅말하기",[[3,"2","4. 서로 존중하며 대화해요"]],["질문기반 탐구수업(2025) 하브루타"]],["[4국01-05]","목적과 주제에 알맞게 자료를 정리하여 자신감 있게 발표한다.","국어","듣기⋅말하기",[[4,"1","5. 말과 글로 전하는 생각 › 1. 자신 있게 발표하기"]],[]],["[4국01-06]","주제에 적절한 의견과 이유를 제시하고 서로의 생각을 교환하며 토의한다.","국어","듣기⋅말하기",[[3,"2","6. 감상과 표현의 즐거움 › 2. 의견을 제시하는 글 쓰기"],[4,"1","2. 서로 다른 의견"]],["웹진 5호 토론 수업(3학년)"]],["[4국02-01]","글의 의미를 파악하며 유창하게 글을 읽는다.","국어","읽기",[[3,"2","2. 유창하게 읽고 발표해요 › 1. 글을 유창하게 소리 내어 읽기"]],[]],["[4국02-02]","문단과 글에서 중심 생각을 파악하고 내용을 간추린다.","국어","읽기",[[4,"1","4. 뜻을 파악하며 읽어요 › 2. 글의 중심 생각을 파악하며 읽기"]],[]],["[4국02-03]","질문을 활용하여 글을 예측하며 읽고 자신의 읽기 과정을 점검한다.","국어","읽기",[[4,"1","독서단원: 질문을 만들며 책을 읽어요"]],["질문기반 탐구수업(2025) 하브루타"]],["[4국02-04]","글에 나타난 사실과 의견을 구분하고 필자와 자신의 의견을 비교한다.","국어","읽기",[[3,"1","6. 자신 있게 읽고 써요 › 1. 사실과 의견 구분하기"]],["웹진 6호 사례5 그림책 슬로 리딩","웹진 5호 토론 수업(3학년)"]],["[4국02-05]","글이나 자료의 출처가 믿을 만한지 판단한다.","국어","읽기",[[3,"2","3. 정확하게 글을 써요 › 1. 출처를 확인하며 글 읽기"]],[]],["[4국02-06]","바람직한 읽기 습관을 형성하고 읽기에 대한 자신감을 기른다.","국어","읽기",[[3,"1","독서: 읽은 책을 소개해요"],[3,"2","독서: 계획대로 차근차근 읽어요"],[4,"1","독서단원: 질문을 만들며 책을 읽어요"],[4,"2","독서: 생각을 나누며 책을 읽어요"]],[]],["[4국03-01]","중심 문장과 뒷받침 문장을 갖추어 문단을 쓰고, 문장과 문단을 중심으로 고쳐 쓴다.","국어","쓰기",[[3,"1","3. 짜임새 있는 글, 재미와 감동이 있는 글 › 1. 짜임새 있는 문단 쓰기"]],[]],["[4국03-02]","절차와 결과가 드러나게 정확한 표현으로 보고하는 글을 쓴다.","국어","쓰기",[[4,"1","3. 자세하게 살펴요 › 2. 대상을 관찰하여 보고하는 글 쓰기"]],[]],["[4국03-03]","대상에 대한 자신의 의견과 그렇게 생각한 이유가 드러나게 글을 쓴다.","국어","쓰기",[[4,"1","5. 말과 글로 전하는 생각"]],["웹진 5호 토론 수업(3학년)"]],["[4국03-04]","목적과 주제를 고려하여 독자에게 마음을 전하는 글을 쓴다.","국어","쓰기",[[3,"1","5. 인물에게 마음을 전해요 › 2. 마음을 전하는 글 쓰기"]],[]],["[4국03-05]","자신의 쓰기 과정을 점검하며 쓰기에 자신감을 갖는다.","국어","쓰기",[[3,"1","6. 자신 있게 읽고 써요"]],["웹진 5호 토론 수업(3학년)"]],["[4국04-01]","단어와 단어 간의 의미 관계를 파악한다.","국어","문법",[[4,"1","3. 자세하게 살펴요 › 1. 낱말의 의미 관계 알기"]],[]],["[4국04-02]","단어를 분류하고 국어사전을 활용하여 능동적인 국어 활동을 한다.","국어","문법",[[3,"2","5. 사전으로 여는 세상 › 2. 국어사전 활용하기"]],[]],["[4국04-03]","기본적인 문장의 짜임을 이해하고 적절하게 사용한다.","국어","문법",[[3,"1","2. 분명하고 유창하게"]],[]],["[4국04-04]","글과 담화에 쓰인 높임 표현과 지시⋅접속 표현을 이해하고 상황에 맞게 표현한다.","국어","문법",[[3,"2","4. 서로 존중하며 대화해요 › 1. 높임 표현을 바르게 사용하기"]],[]],["[4국04-05]","언어가 의사소통과 관계 형성의 수단임을 이해하고 국어를 소중히 여기는 태도를 지닌다.","국어","문법",[[4,"2","2. 우리말 우리글"]],[]],["[4국05-01]","인물과 이야기의 흐름을 중심으로 작품을 감상한다.","국어","문학",[[4,"1","1. 깊이 있게 읽어요"]],[]],["[4국05-02]","자신의 경험을 바탕으로 작품 속 세계와 현실 세계를 비교하여 작품을 감상한다.","국어","문학",[[4,"2","1. 비교하며 읽어요"]],[]],["[4국05-03]","작품을 듣거나 읽고 마음에 드는 작품을 소개한다.","국어","문학",[[3,"1","3. 짜임새 있는 글, 재미와 감동이 있는 글 › 2. 작품을 읽고 재미나 감동 표현하기"],[4,"2","4. 책 속의 길을 따라 › 1. 작품을 읽고 생각이나 느낌 나누기"]],["질문기반 탐구수업(2025) 하브루타"]],["[4국05-04]","감각적 표현에 유의하여 작품을 감상하고, 감각적 표현을 활용하여 자신의 생각이나 감정을 표현한다.","국어","문학",[[4,"1","6. 경험을 표현해요"]],[]],["[4국05-05]","재미나 감동을 느끼며 작품을 즐겨 감상하는 태도를 지닌다.","국어","문학",[[3,"1","3. 짜임새 있는 글, 재미와 감동이 있는 글 › 2. 작품을 읽고 재미나 감동 표현하기"]],[]],["[4국06-01]","인터넷에서 학습에 필요한 다양한 자료를 탐색하고 목적에 맞게 자료를 선택한다.","국어","매체",[[4,"1","3. 자세하게 살펴요"]],[]],["[4국06-02]","매체를 활용하여 간단한 발표 자료를 만든다.","국어","매체",[[3,"2","2. 유창하게 읽고 발표해요 › 2. 글과 그림을 활용하여 표현하기"],[4,"2","3. 의견을 모아서"]],[]],["[4국06-03]","매체 소통 윤리를 고려하여 매체 자료를 활용하고 공유한다.","국어","매체",[[4,"2","3. 의견을 모아서"]],[]],["[6국01-01]","대화에서 생략된 내용을 추론하며 듣는다.","국어","듣기⋅말하기",[[5,"1","1. 대화를 나누어요 › 2. 생략된 내용을 짐작하며 대화하기"]],[]],["[6국01-02]","주장을 파악하고 이유나 근거가 타당한지 평가하며 듣는다.","국어","듣기⋅말하기",[[6,"2","3. 보거나 듣고 판단해요"]],[]],["[6국01-03]","주제와 관련하여 궁금한 내용을 질문하며 적극적으로 듣고 말한다.","국어","듣기⋅말하기",[[5,"1","3. 발표하고 질문해요 › 2. 궁금한 내용 질문하기"],[6,"2","2. 궁금한 점을 해결해요 › 1. 궁금한 내용을 질문하며 면담하기"]],["웹진 6호 질문 수업(ORID)"]],["[6국01-04]","면담의 절차를 이해하고 상대와 매체를 고려하여 면담한다.","국어","듣기⋅말하기",[[6,"2","2. 궁금한 점을 해결해요 › 2. 매체를 고려하여 면담하기"]],[]],["[6국01-05]","자료를 선별하여 핵심 정보를 중심으로 내용을 구성하고 매체를 활용하여 발표한다.","국어","듣기⋅말하기",[[5,"1","3. 발표하고 질문해요 › 1. 자료를 선별하여 발표하기"]],[]],["[6국01-06]","토의에 협력적으로 참여하며 서로의 의견을 비교하고 조정한다.","국어","듣기⋅말하기",[[5,"2","4. 의견을 조정해요 › 1. 의견을 조정하며 토의하기"]],[]],["[6국01-07]","절차와 규칙을 지키고 타당한 이유와 근거를 제시하며 토론한다.","국어","듣기⋅말하기",[[6,"1","3. 절차를 지키며 토론해요 › 2. 문제를 정하여 토론하기"]],[]],["[6국02-01]","글의 구조를 고려하며 주제나 주장을 파악하고 글 내용을 요약한다.","국어","읽기",[[5,"1","4. 대상을 설명해요"]],[]],["[6국02-02]","글에서 생략된 내용이나 함축된 표현을 문맥을 고려하여 추론한다.","국어","읽기",[[5,"1","1. 대화를 나누어요 › 2. 생략된 내용을 짐작하며 대화하기"]],[]],["[6국02-03]","글이나 자료를 읽고 내용의 타당성과 표현의 적절성을 평가한다.","국어","읽기",[[6,"1","6. 비판적으로 읽어요 › 2. 표현의 적절성을 판단하며 읽기"]],[]],["[6국02-04]","문제 상황과 관련된 다양한 관점의 글을 읽고 이를 문제 해결에 활용한다.","국어","읽기",[[5,"1","5. 의논하며 토의해요"]],[]],["[6국02-05]","긍정적인 읽기 동기를 형성하고 적극적으로 읽기에 참여하는 태도를 기른다.","국어","읽기",[[6,"1","6. 비판적으로 읽어요 › 2. 표현의 적절성을 판단하며 읽기"]],["웹진 6호 질문 수업(ORID)"]],["[6국03-01]","알맞은 내용을 선정하여 대상의 특성이 나타나게 설명하는 글을 쓴다.","국어","쓰기",[[5,"1","4. 대상을 설명해요 › 2. 대상을 설명하는 글 쓰기"]],[]],["[6국03-02]","적절한 근거를 사용하고 인용의 출처를 밝히며 주장하는 글을 쓴다.","국어","쓰기",[[6,"1","5. 자신의 글쓰기 과정을 살펴봐요"]],[]],["[6국03-03]","체험한 일에 대한 감상을 나타내는 글을 쓴다.","국어","쓰기",[[5,"1","2. 체험한 일을 글로 써요"]],[]],["[6국03-04]","독자와 매체를 고려하여 내용을 생성하고 표현하며 글을 쓴다.","국어","쓰기",[[5,"2","2. 올바른 문장으로 글을 써요 › 2. 매체를 고려해 글 쓰기"],[6,"2","5. 언어와 소통 › 2. 독자를 고려하며 글 쓰기"]],[]],["[6국03-05]","쓰기 과정을 점검⋅조정하며 글을 쓰고, 글 전체를 대상으로 통일성 있게 고쳐 쓴다.","국어","쓰기",[[5,"1","4. 대상을 설명해요 › 2. 대상을 설명하는 글 쓰기"],[6,"1","2. 바르게 고쳐 써요"]],[]],["[6국03-06]","쓰기에 적극적으로 참여하며 자신의 글을 독자와 공유하는 태도를 지닌다.","국어","쓰기",[[6,"2","5. 언어와 소통 › 2. 독자를 고려하며 글 쓰기"]],[]],["[6국04-01]","음성 언어 및 문자 언어의 특성을 이해하고 다양한 매체 자료에서 표현 효과를 평가한다.","국어","문법",[[6,"2","5. 언어와 소통 › 1. 언어의 표현 효과 이해하기"]],[]],["[6국04-02]","표준어와 방언의 기능을 파악하고 언어 공동체와 국어생활과의 관계를 이해한다.","국어","문법",[[5,"2","3. 표준어와 방언을 알아봐요"]],[]],["[6국04-03]","고유어와 관용 표현의 쓰임과 가치를 이해하고 상황에 맞게 표현한다.","국어","문법",[[6,"1","4. 상황에 맞게 표현해요"]],[]],["[6국04-04]","문장 성분을 이해하고 호응 관계가 올바른 문장을 구성한다.","국어","문법",[[6,"1","2. 바르게 고쳐 써요"]],[]],["[6국04-05]","글과 담화에 쓰인 시간 표현을 이해하고 상황에 맞게 표현한다.","국어","문법",[[6,"1","4. 상황에 맞게 표현해요"]],[]],["[6국04-06]","글과 담화에 쓰인 단어 및 문장, 띄어쓰기를 민감하게 살펴 바르게 고치는 태도를 지닌다.","국어","문법",[[6,"1","2. 바르게 고쳐 써요"]],[]],["[6국05-01]","작가의 의도를 생각하며 작품을 읽는다.","국어","문학",[[5,"2","6. 작품을 감상해요"],[6,"2","1. 깊이 있게 감상해요"]],[]],["[6국05-02]","비유적 표현의 효과에 유의하여 작품을 감상한다.","국어","문학",[[5,"1","6. 작품을 즐겨요 › 1. 비유적 표현을 알고 시 낭송하기"]],[]],["[6국05-03]","소설이나 극을 읽고 인물, 사건, 배경을 파악한다.","국어","문학",[[5,"2","6. 작품을 감상해요 › 2. 극본의 구성 요소를 알고 감상하기"]],[]],["[6국05-04]","인상적인 부분을 중심으로 작품에 대한 의견을 나눈다.","국어","문학",[[5,"2","1. 작품에 대한 의견을 나누어요"]],[]],["[6국05-05]","자신의 경험을 시, 소설, 극, 수필 등 적절한 갈래로 표현한다.","국어","문학",[[6,"1","5. 자신의 글쓰기 과정을 살펴봐요"]],[]],["[6국05-06]","작품을 읽고 자신의 삶과 연관 지어 성찰하는 태도를 지닌다.","국어","문학",[[6,"1","1. 자신의 삶과 관련지어 읽어요"]],["웹진 6호 사례2 포용성 정의"]],["[6국06-01]","정보 검색 도구를 활용하여 자신의 목적에 맞는 매체 자료를 찾는다.","국어","매체",[[5,"1","3. 발표하고 질문해요"]],[]],["[6국06-02]","뉴스 및 각종 정보 매체 자료의 신뢰성을 평가한다.","국어","매체",[[5,"2","매체. 판단하며 이용해요"]],[]],["[6국06-03]","적합한 양식과 수용자의 반응을 고려하여 복합양식 매체 자료를 제작하고 공유한다.","국어","매체",[[6,"1","3. 절차를 지키며 토론해요"]],[]],["[6국06-04]","자신의 매체 이용 양상에 대해 성찰한다.","국어","매체",[[6,"2","매체. 매체 이용 습관을 돌아봐요"]],["폰프리 스쿨"]],["[2수01-01]","수의 필요성을 인식하면서 0과 100까지의 수 개념을 이해하고, 수를 세고 읽고 쓸 수 있다.","수학","수와 연산",[[1,"1","1. 9까지의 수"],[1,"1","5. 50까지의 수"],[1,"2","1. 100까지의 수"]],[]],["[2수01-02]","일, 십, 백, 천의 자릿값과 위치적 기수법을 이해하고, 네 자리 이하의 수를 읽고 쓸 수 있다.","수학","수와 연산",[[2,"1","1. 세 자리 수"],[2,"2","1. 네 자리 수"]],[]],["[2수01-03]","네 자리 이하의 수의 범위에서 수의 계열을 이해하고, 수의 크기를 비교할 수 있다.","수학","수와 연산",[[2,"2","1. 네 자리 수"]],[]],["[2수01-04]","하나의 수를 두 수로 분해하고 두 수를 하나의 수로 합성하는 활동을 통하여 수 감각을 기른다.","수학","수와 연산",[[1,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-05]","덧셈과 뺄셈이 이루어지는 실생활 상황과 연결하여 덧셈과 뺄셈의 의미를 이해한다.","수학","수와 연산",[[1,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-06]","두 자리 수의 범위에서 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[1,"2","2. 덧셈과 뺄셈(1)"],[2,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-07]","덧셈과 뺄셈의 관계를 이해한다.","수학","수와 연산",[[1,"1","3. 덧셈과 뺄셈"],[2,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-08]","두 자리 수의 범위에서 세 수의 덧셈과 뺄셈을 할 수 있다.","수학","수와 연산",[[1,"2","6. 덧셈과 뺄셈(3)"],[2,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-09]","□가 사용된 덧셈식과 뺄셈식을 만들고, □의 값을 구할 수 있다.","수학","수와 연산",[[2,"1","3. 덧셈과 뺄셈"]],[]],["[2수01-10]","곱셈이 이루어지는 실생활 상황과 연결하여 곱셈의 의미를 이해한다.","수학","수와 연산",[[2,"1","6. 곱셈"]],[]],["[2수01-11]","곱셈구구를 이해하고, 한 자리 수의 곱셈을 할 수 있다.","수학","수와 연산",[[2,"2","2. 곱셈구구"]],[]],["[2수02-01]","물체, 무늬, 수 등의 배열에서 규칙을 찾아 여러 가지 방법으로 표현할 수 있다.","수학","변화와 관계",[[1,"2","5. 규칙 찾기"]],[]],["[2수02-02]","자신이 정한 규칙에 따라 물체, 무늬, 수 등을 배열할 수 있다.","수학","변화와 관계",[[1,"2","5. 규칙 찾기"],[2,"2","6. 규칙 찾기"]],[]],["[2수03-01]","교실 및 생활 주변에서 여러 가지 물건을 관찰하여 직육면체, 원기둥, 구의 모양을 찾고, 이를 이용하여 여러 가지 모양을 만들 수 있다.","수학","도형과 측정",[[1,"1","2. 여러 가지 모양"]],[]],["[2수03-02]","쌓기나무를 이용하여 여러 가지 입체도형의 모양을 만들고, 그 모양에 대해 위치나 방향을 이용하여 말할 수 있다.","수학","도형과 측정",[[2,"1","2. 여러 가지 도형"]],[]],["[2수03-03]","교실 및 생활 주변에서 여러 가지 물건을 관찰하여 삼각형, 사각형, 원의 모양을 찾고, 이를 이용하여 여러 가지 모양을 만들 수 있다.","수학","도형과 측정",[[1,"1","2. 여러 가지 모양"]],[]],["[2수03-04]","삼각형, 사각형, 원을 직관적으로 이해하고, 그 모양을 그릴 수 있다.","수학","도형과 측정",[[1,"2","3. 모양과 시각"],[2,"1","2. 여러 가지 도형"]],[]],["[2수03-05]","삼각형, 사각형에서 각각의 공통점을 찾아 말할 수 있다.","수학","도형과 측정",[[2,"1","2. 여러 가지 도형"]],[]],["[2수03-06]","구체물의 길이, 들이, 무게, 넓이를 비교하여 각각 ‘길다, 짧다’, ‘많다, 적다’, ‘무겁다, 가볍다’, ‘넓다, 좁다’ 등을 구별하여 말할 수 있다.","수학","도형과 측정",[[1,"1","4. 비교하기"]],[]],["[2수03-07]","시계를 보고 시각을 ‘몇 시 몇 분’까지 읽을 수 있다.","수학","도형과 측정",[[1,"2","3. 모양과 시각"],[2,"2","4. 시각과 시간"]],[]],["[2수03-08]","1시간과 1분의 관계를 이해하고, 시간을 ‘시간’, ‘분’으로 표현할 수 있다.","수학","도형과 측정",[[2,"2","4. 시각과 시간"]],[]],["[2수03-09]","실생활 문제 상황과 연결하여 1분, 1시간, 1일, 1주일, 1개월, 1년 사이의 관계를 이해한다.","수학","도형과 측정",[[2,"2","4. 시각과 시간"]],[]],["[2수03-10]","길이 단위 1cm와 1m를 알고, 이를 이용하여 주변 사물의 길이를 측정할 수 있다.","수학","도형과 측정",[[2,"1","4. 길이 재기"]],[]],["[2수03-11]","1m와 1cm의 관계를 이해하고, 길이를 ‘몇 m 몇 cm’와 ‘몇 cm’로 표현할 수 있다.","수학","도형과 측정",[[2,"2","3. 길이 재기"]],[]],["[2수03-12]","여러 가지 물건의 길이를 어림하고, 길이에 대한 양감을 기른다.","수학","도형과 측정",[[2,"1","4. 길이 재기"],[2,"2","3. 길이 재기"]],[]],["[2수03-13]","실생활 문제 상황과 연결하여 길이의 덧셈과 뺄셈을 할 수 있다.","수학","도형과 측정",[[2,"2","3. 길이 재기"]],[]],["[2수04-01]","여러 가지 사물을 정해진 기준 또는 자신이 정한 기준으로 분류하여 개수를 세어 보고, 기준에 따른 결과를 말할 수 있다.","수학","자료와 가능성",[[2,"1","5. 분류하기"]],[]],["[2수04-02]","자료를 분류하여 표로 나타내고, 자료를 표로 나타내면 편리한 점을 말할 수 있다.","수학","자료와 가능성",[[2,"2","5. 표와 그래프"]],[]],["[2수04-03]","자료를 분류하여 ○, ×, / 등을 이용한 그래프로 나타내고, 자료를 그래프로 나타내면 편리한 점을 말할 수 있다.","수학","자료와 가능성",[[2,"2","5. 표와 그래프"]],[]],["[4수01-01]","큰 수의 필요성을 인식하면서 10000 이상의 큰 수에 대한 자릿값과 위치적 기수법을 이해하고, 수를 읽고 쓸 수 있다.","수학","수와 연산",[[4,"1","1. 큰 수"]],[]],["[4수01-02]","다섯 자리 이상의 수의 범위에서 수의 계열을 이해하고, 수의 크기를 비교하며 그 방법을 설명할 수 있다.","수학","수와 연산",[[4,"1","1. 큰 수"]],[]],["[4수01-03]","세 자리 수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[3,"1","1. 덧셈과 뺄셈"]],[]],["[4수01-04]","곱하는 수가 한 자리 수 또는 두 자리 수인 곱셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[3,"1","4. 곱셈"],[3,"2","1. 곱셈"],[4,"1","3. 곱셈과 나눗셈"]],[]],["[4수01-05]","나눗셈이 이루어지는 실생활 상황과 연결하여 나눗셈의 의미를 알고, 곱셈과 나눗셈의 관계를 이해한다.","수학","수와 연산",[[3,"1","3. 나눗셈"]],[]],["[4수01-06]","나누는 수가 한 자리 수인 나눗셈의 계산 원리를 이해하고 그 계산을 할 수 있으며, 나눗셈에서 몫과 나머지의 의미를 안다.","수학","수와 연산",[[3,"2","2. 나눗셈"]],[]],["[4수01-07]","나누는 수가 두 자리 수인 나눗셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[4,"1","3. 곱셈과 나눗셈"]],[]],["[4수01-08]","자연수의 덧셈, 뺄셈, 곱셈, 나눗셈과 관련한 여러 가지 상황에서 어림셈을 할 수 있다.","수학","수와 연산",[[3,"1","1. 덧셈과 뺄셈"],[4,"1","3. 곱셈과 나눗셈"]],[]],["[4수01-09]","양의 등분할을 통하여 분수의 필요성을 인식하고, 분수를 이해하고 읽고 쓸 수 있다.","수학","수와 연산",[[3,"1","6. 분수와 소수"]],[]],["[4수01-10]","단위분수, 진분수, 가분수, 대분수를 알고, 그 관계를 이해한다.","수학","수와 연산",[[3,"2","4. 분수"]],[]],["[4수01-11]","분모가 같은 분수끼리, 단위분수끼리 크기를 비교하고 그 방법을 설명할 수 있다.","수학","수와 연산",[[3,"1","6. 분수와 소수"],[3,"2","4. 분수"]],[]],["[4수01-12]","분모가 10인 진분수와 연결하여 소수 한 자리 수를 이해하고 읽고 쓸 수 있다.","수학","수와 연산",[[3,"1","6. 분수와 소수"]],[]],["[4수01-13]","자릿값의 원리를 바탕으로 소수 두 자리 수와 소수 세 자리 수를 이해하고 읽고 쓸 수 있다.","수학","수와 연산",[[4,"2","3. 소수의 덧셈과 뺄셈"]],[]],["[4수01-14]","소수의 크기를 비교하고 그 방법을 설명할 수 있다.","수학","수와 연산",[[4,"2","3. 소수의 덧셈과 뺄셈"]],[]],["[4수01-15]","분모가 같은 분수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[4,"2","1. 분수의 덧셈과 뺄셈"]],[]],["[4수01-16]","소수 두 자리 수의 범위에서 소수의 덧셈과 뺄셈의 계산 원리를 이해하고 그 계산을 할 수 있다.","수학","수와 연산",[[4,"2","3. 소수의 덧셈과 뺄셈"]],[]],["[4수02-01]","다양한 변화 규칙을 찾아 설명하고, 그 규칙을 수나 식으로 나타낼 수 있다.","수학","변화와 관계",[[4,"1","6. 규칙과 관계"]],["웹진 6호 사례6 계산식 규칙"]],["[4수02-02]","계산식의 배열에서 규칙을 찾고, 계산 결과를 추측할 수 있다.","수학","변화와 관계",[[4,"1","6. 규칙과 관계"]],[]],["[4수02-03]","등호를 사용하여 크기가 같은 두 양의 관계를 식으로 나타낼 수 있다.","수학","변화와 관계",[[4,"1","6. 규칙과 관계"]],[]],["[4수03-01]","직선, 선분, 반직선을 이해하고 구별할 수 있다.","수학","도형과 측정",[[3,"1","2. 평면도형"]],[]],["[4수03-02]","각과 직각을 이해하고, 직각과 비교하는 활동을 통하여 예각과 둔각을 구별할 수 있다.","수학","도형과 측정",[[3,"1","2. 평면도형"],[4,"1","2. 각도"]],[]],["[4수03-03]","직선의 수직 관계와 평행 관계를 이해한다.","수학","도형과 측정",[[4,"2","4. 사각형"]],[]],["[4수03-04]","구체물이나 평면도형의 밀기, 뒤집기, 돌리기 활동을 통하여 그 변화를 이해한다.","수학","도형과 측정",[[4,"1","4. 평면도형의 이동"]],[]],["[4수03-05]","평면에서 점의 이동에 대해 위치와 방향을 이용하여 설명할 수 있다.","수학","도형과 측정",[[4,"1","4. 평면도형의 이동"]],[]],["[4수03-06]","원의 중심, 반지름, 지름을 이해하고, 그 성질을 안다.","수학","도형과 측정",[[3,"2","3. 원"]],[]],["[4수03-07]","컴퍼스를 이용하여 여러 가지 크기의 원을 그릴 수 있다.","수학","도형과 측정",[[3,"2","3. 원"]],[]],["[4수03-08]","여러 가지 모양의 삼각형에 대한 분류 활동을 통하여 이등변삼각형, 정삼각형을 이해하고, 그 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[4,"2","2. 삼각형"]],[]],["[4수03-09]","여러 가지 모양의 삼각형에 대한 분류 활동을 통하여 직각삼각형, 예각삼각형, 둔각 삼각형을 이해한다.","수학","도형과 측정",[[4,"2","2. 삼각형"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4수03-10]","여러 가지 모양의 사각형에 대한 분류 활동을 통하여 직사각형, 정사각형, 사다리꼴, 평행사변형, 마름모를 이해하고, 그 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[4,"2","4. 사각형"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4수03-11]","다각형과 정다각형을 이해한다.","수학","도형과 측정",[[4,"2","6. 다각형"]],[]],["[4수03-12]","주어진 도형을 이용하여 여러 가지 모양을 만들거나 채우고 설명할 수 있다.","수학","도형과 측정",[[4,"2","6. 다각형"]],[]],["[4수03-13]","1분과 1초의 관계를 이해하고, 초 단위까지 시각을 읽을 수 있다.","수학","도형과 측정",[[3,"1","5. 길이와 시간"]],[]],["[4수03-14]","실생활 문제 상황과 연결하여 초 단위까지의 시간의 덧셈과 뺄셈을 할 수 있다.","수학","도형과 측정",[[3,"1","5. 길이와 시간"]],[]],["[4수03-15]","길이 단위 1mm와 1km를 알고, 이를 이용하여 길이를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","수학","도형과 측정",[[3,"1","5. 길이와 시간"]],[]],["[4수03-16]","1cm와 1mm, 1km와 1m의 관계를 이해하고, 길이를 ‘몇 cm 몇 mm’와 ‘몇 mm’, ‘몇 km 몇 m’와 ‘몇 m’로 다양하게 표현할 수 있다.","수학","도형과 측정",[[3,"1","5. 길이와 시간"]],[]],["[4수03-17]","들이 단위 1L와 1mL를 알고, 이를 이용하여 들이를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-18]","1L와 1mL의 관계를 이해하고, 들이를 ‘몇 L 몇 mL’와 ‘몇 mL’로 표현할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-19]","실생활 문제 상황과 연결하여 들이의 덧셈과 뺄셈을 할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-20]","실생활에서 무게를 나타낼 때 사용하는 단위 1g과 1kg을 알고, 이를 이용하여 무게를 측정하고 어림하며 수학의 유용성을 인식할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-21]","1kg과 1g의 관계를 이해하고, 무게를 ‘몇 kg 몇 g’과 ‘몇 g’으로 표현할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-22]","실생활에서 무게를 나타낼 때 사용하는 단위 1t을 알고, 1t과 1kg의 관계를 이해한다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-23]","실생활 문제 상황과 연결하여 무게의 덧셈과 뺄셈을 할 수 있다.","수학","도형과 측정",[[3,"2","5. 들이와 무게"]],[]],["[4수03-24]","각의 크기의 단위인 1도(°)를 알고, 각도기를 이용하여 각의 크기를 측정하고 어림할 수 있다.","수학","도형과 측정",[[4,"1","2. 각도"]],[]],["[4수03-25]","여러 가지 방법으로 삼각형과 사각형의 내각의 크기의 합을 추론하고, 자신의 추론 과정을 설명할 수 있다.","수학","도형과 측정",[[4,"2","2. 삼각형"]],[]],["[4수04-01]","자료를 수집하여 그림그래프나 막대그래프로 나타내고 해석할 수 있다.","수학","자료와 가능성",[[3,"2","6. 그림그래프"],[4,"1","5. 막대그래프"]],[]],["[4수04-02]","자료를 수집하여 꺾은선그래프로 나타내고 해석할 수 있다.","수학","자료와 가능성",[[4,"2","5. 꺾은선그래프"]],[]],["[4수04-03]","탐구 문제를 해결하기 위해 자료를 수집, 정리하여 막대그래프나 꺾은선그래프로 나타내고 해석할 수 있다.","수학","자료와 가능성",[[4,"2","5. 꺾은선그래프"]],[]],["[6수01-01]","덧셈, 뺄셈, 곱셈, 나눗셈의 혼합 계산에서 계산하는 순서를 알고, 혼합 계산을 할 수 있다.","수학","수와 연산",[[5,"1","1. 자연수의 혼합 계산"]],[]],["[6수01-02]","실생활과 연결하여 이상, 이하, 초과, 미만의 의미와 쓰임을 알고, 이를 활용하여 수의 범위를 나타낼 수 있다.","수학","수와 연산",[[5,"2","1. 수의 범위와 어림하기"]],[]],["[6수01-03]","어림값을 구하기 위한 방법으로 올림, 버림, 반올림의 의미와 필요성을 알고, 이를 실생활에 활용함으로써 수학의 유용성을 인식할 수 있다.","수학","수와 연산",[[5,"2","1. 수의 범위와 어림하기"]],[]],["[6수01-04]","약수, 공약수, 최대공약수를 이해하고 구할 수 있다.","수학","수와 연산",[[5,"1","2. 약수와 배수"]],[]],["[6수01-05]","배수, 공배수, 최소공배수를 이해하고 구할 수 있다.","수학","수와 연산",[[5,"1","2. 약수와 배수"]],[]],["[6수01-06]","크기가 같은 분수를 만드는 방법을 이해하고, 분수를 약분, 통분할 수 있다.","수학","수와 연산",[[5,"1","4. 약분과 통분"]],[]],["[6수01-07]","분모가 다른 분수의 크기를 비교하고 그 방법을 설명할 수 있다.","수학","수와 연산",[[5,"1","4. 약분과 통분"]],[]],["[6수01-08]","분모가 다른 분수의 덧셈과 뺄셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","수학","수와 연산",[[5,"1","5. 분수의 덧셈과 뺄셈"]],[]],["[6수01-09]","분수의 곱셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","수학","수와 연산",[[5,"2","2. 분수의 곱셈"]],[]],["[6수01-10]","‘(자연수) ÷ (자연수)’에서 나눗셈의 몫을 분수로 나타낼 수 있다.","수학","수와 연산",[[6,"1","1. 분수의 나눗셈"]],[]],["[6수01-11]","분수의 나눗셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","수학","수와 연산",[[6,"2","1. 분수의 나눗셈"]],[]],["[6수01-12]","분수와 소수의 관계를 이해하고 크기를 비교하며 그 방법을 설명할 수 있다.","수학","수와 연산",[[5,"2","4. 소수의 곱셈"],[6,"2","2. 소수의 나눗셈"]],[]],["[6수01-13]","소수의 곱셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","수학","수와 연산",[[5,"2","4. 소수의 곱셈"]],[]],["[6수01-14]","‘(자연수) ÷ (자연수)’에서 나눗셈의 몫을 소수로 나타낼 수 있다.","수학","수와 연산",[[6,"1","3. 소수의 나눗셈"]],[]],["[6수01-15]","소수의 나눗셈의 계산 원리를 탐구하고 그 계산을 할 수 있다.","수학","수와 연산",[[6,"2","2. 소수의 나눗셈"]],[]],["[6수02-01]","한 양이 변할 때 다른 양이 그에 종속하여 변하는 대응 관계를 나타낸 표에서 규칙을 찾아 설명하고, □, △ 등을 사용하여 식으로 나타낼 수 있다.","수학","변화와 관계",[[5,"1","3. 대응 관계"]],[]],["[6수02-02]","두 양의 크기를 비교하는 상황을 통해 비의 개념을 이해하고, 두 양의 관계를 비로 나타낼 수 있다.","수학","변화와 관계",[[6,"1","4. 비와 비율"]],[]],["[6수02-03]","비율을 이해하고, 비율을 분수, 소수, 백분율로 나타낼 수 있다.","수학","변화와 관계",[[6,"1","4. 비와 비율"]],[]],["[6수02-04]","비례식을 알고, 그 성질을 이해하며, 이를 활용하여 간단한 비례식을 풀 수 있다.","수학","변화와 관계",[[6,"2","4. 비례식과 비례배분"]],[]],["[6수02-05]","비례배분을 알고, 주어진 양을 비례배분 할 수 있다.","수학","변화와 관계",[[6,"2","4. 비례식과 비례배분"]],[]],["[6수03-01]","도형의 합동을 이해하고, 합동인 도형의 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[5,"2","3. 합동과 대칭"]],[]],["[6수03-02]","실생활과 연결하여 선대칭도형과 점대칭도형을 이해하고 그릴 수 있다.","수학","도형과 측정",[[5,"2","3. 합동과 대칭"]],[]],["[6수03-03]","직육면체와 정육면체를 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[5,"2","5. 직육면체"]],[]],["[6수03-04]","직육면체와 정육면체의 겨냥도와 전개도를 그릴 수 있다.","수학","도형과 측정",[[5,"2","5. 직육면체"]],[]],["[6수03-05]","각기둥과 각뿔을 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[6,"1","2. 각기둥과 각뿔"]],[]],["[6수03-06]","각기둥의 전개도를 그릴 수 있다.","수학","도형과 측정",[[6,"1","2. 각기둥과 각뿔"]],[]],["[6수03-07]","원기둥, 원뿔, 구를 이해하고, 구성 요소와 성질을 탐구하고 설명할 수 있다.","수학","도형과 측정",[[6,"2","6. 원기둥, 원뿔, 구"]],[]],["[6수03-08]","원기둥의 전개도를 그릴 수 있다.","수학","도형과 측정",[[6,"2","6. 원기둥, 원뿔, 구"]],[]],["[6수03-09]","쌓기나무로 만든 입체도형을 보고 사용된 쌓기나무의 개수를 구할 수 있다.","수학","도형과 측정",[[6,"2","3. 공간과 입체"]],[]],["[6수03-10]","쌓기나무로 만든 입체도형의 위, 앞, 옆에서 본 모양을 표현할 수 있고, 이러한 표현을 보고 입체도형의 모양을 추측할 수 있다.","수학","도형과 측정",[[6,"2","3. 공간과 입체"]],[]],["[6수03-11]","평면도형의 둘레를 이해하고, 기본적인 평면도형의 둘레를 구할 수 있다.","수학","도형과 측정",[[5,"1","6. 다각형의 둘레와 넓이"]],[]],["[6수03-12]","넓이 단위 1cm², 1m², 1km²를 알며, 그 관계를 이해한다.","수학","도형과 측정",[[5,"1","6. 다각형의 둘레와 넓이"]],[]],["[6수03-13]","직사각형과 정사각형의 넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","수학","도형과 측정",[[5,"1","6. 다각형의 둘레와 넓이"]],[]],["[6수03-14]","평행사변형, 삼각형, 사다리꼴, 마름모의 넓이를 구하는 방법을 다양하게 추론하고, 이와 관련된 문제를 해결할 수 있다.","수학","도형과 측정",[[5,"1","6. 다각형의 둘레와 넓이"]],[]],["[6수03-15]","여러 가지 원 모양 물체의 원주와 지름을 측정하는 활동을 통하여, 원주율이 일정한 값임을 알고 그 근삿값을 사용할 수 있다.","수학","도형과 측정",[[6,"2","5. 원의 둘레와 넓이"]],[]],["[6수03-16]","원주와 원의 넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","수학","도형과 측정",[[6,"2","5. 원의 둘레와 넓이"]],[]],["[6수03-17]","직육면체와 정육면체의 겉넓이를 구하는 방법을 이해하고, 이를 구할 수 있다.","수학","도형과 측정",[[6,"1","6. 직육면체의 부피와 겉넓이"]],[]],["[6수03-18]","부피 단위 1cm³, 1m³를 알며, 그 관계를 이해한다.","수학","도형과 측정",[[6,"1","6. 직육면체의 부피와 겉넓이"]],[]],["[6수03-19]","직육면체와 정육면체의 부피를 구하는 방법을 이해하고, 이를 구할 수 있다.","수학","도형과 측정",[[6,"1","6. 직육면체의 부피와 겉넓이"]],[]],["[6수04-01]","평균의 의미를 알고, 자료를 수집하여 평균을 구하고 해석할 수 있다.","수학","자료와 가능성",[[5,"2","6. 평균과 가능성"]],[]],["[6수04-02]","자료를 수집하여 띠그래프나 원그래프로 나타내고 해석할 수 있다.","수학","자료와 가능성",[[6,"1","5. 여러 가지 그래프"]],[]],["[6수04-03]","탐구 문제를 설정하고, 그에 맞는 자료를 수집, 정리하여 적절한 그래프로 나타내고 해석할 수 있다.","수학","자료와 가능성",[[6,"1","5. 여러 가지 그래프"]],[]],["[6수04-04]","사건이 일어날 가능성을 말로 표현하고 비교할 수 있다.","수학","자료와 가능성",[[5,"2","6. 평균과 가능성"]],[]],["[6수04-05]","사건이 일어날 가능성을 수로 나타낼 수 있다.","수학","자료와 가능성",[[5,"2","6. 평균과 가능성"]],[]],["[6수04-06]","자료를 이용하여 가능성을 예상하고, 가능성에 근거하여 적절한 판단을 내릴 수 있다.","수학","자료와 가능성",[[5,"2","6. 평균과 가능성"]],[]],["[4사01-01]","주변 여러 장소에서의 경험과 느낌을 다양한 방식으로 표현하고, 장소감을 나누며 서로 존중하는 태도를 지닌다.","사회","우리가 사는 곳",[[3,"1","우리가 사는 곳 (여러 장소, 생활에 도움을 주는 장소)"]],[]],["[4사01-02]","주변의 여러 장소를 살펴보고, 우리가 사는 곳을 더 살기 좋은 곳으로 만드는 방안을 탐색한다.","사회","우리가 사는 곳",[[3,"1","우리가 사는 곳 (여러 장소, 생활에 도움을 주는 장소)"]],[]],["[4사02-01]","일상 속에서 시간의 흐름을 경험할 수 있는 사례를 살펴보고, 이를 바탕으로 역사의 시간 개념을 이해한다.","사회","일상에서 만나는 과거",[[3,"1","일상에서 만나는 과거 (시간의 흐름, 과거의 모습, 달라진 생활 모습)"]],["웹진 6호 질문 수업(꼬꼬무)"]],["[4사02-02]","오래된 물건이나 자료들을 주변에서 찾아보고, 이를 통해 과거의 모습을 살펴볼 수 있음을 이해한다.","사회","일상에서 만나는 과거",[[3,"1","일상에서 만나는 과거 (시간의 흐름, 과거의 모습, 달라진 생활 모습)"]],[]],["[4사02-03]","지역의 변화상을 보여주는 역사 자료를 분석하여 지역 사람들의 달라진 생활 모습을 파악한다.","사회","일상에서 만나는 과거",[[3,"1","일상에서 만나는 과거 (시간의 흐름, 과거의 모습, 달라진 생활 모습) › 우리 지역 사람들 관련 차시"]],[]],["[4사03-01]","최근 사회 변화의 양상과 특징을 파악하고, 그로 인해 나타난 생활모습의 변화를 탐색한다.","사회","사회 변화와 다양한 문화",[[3,"2","사회 변화로 달라진 생활 모습 (교통·통신의 변화)"]],[]],["[4사03-02]","우리 사회에 다양한 문화가 확산되면서 나타나는 긍정적 효과와 문제를 분석하고, 나와 다른 사람이나 집단의 문화를 존중하는 태도를 기른다.","사회","사회 변화와 다양한 문화",[[3,"2","사회 변화로 달라진 생활 모습 (교통·통신의 변화) › 다양한 문화에 대한 관련 차시"]],[]],["[4사04-01]","옛날 풍습에 대해 알아보고, 오늘날과 비교하여 변화상을 파악한다.","사회","옛날과 오늘날의 생활 모습",[[3,"2","옛날과 오늘날의 풍습·생활 모습"]],[]],["[4사04-02]","옛날부터 오늘날까지 교통의 변화에 따른 이동과 생활 모습의 변화를 이해한다.","사회","옛날과 오늘날의 생활 모습",[[3,"2","사회 변화로 달라진 생활 모습 (교통·통신의 변화) › 교통의 변화 관련 차시"]],[]],["[4사04-03]","옛날부터 오늘날까지 통신수단의 변화에 따른 정보 교류와 의사소통 방식의 변화를 설명한다.","사회","옛날과 오늘날의 생활 모습",[[3,"2","사회 변화로 달라진 생활 모습 (교통·통신의 변화) › 통신수단 관련 차시"]],[]],["[4사05-01]","우리 지역을 표현한 다양한 종류의 지도를 찾아보고, 지도의 요소를 이해한다.","사회","지도로 만나는 우리 지역",[[4,"1","지도로 만나는 우리 지역 (지도, 우리 지역의 위치와 특성)"]],[]],["[4사05-02]","지도에서 우리 지역의 위치를 파악하고, 우리 지역의 지리 정보를 탐색한다.","사회","지도로 만나는 우리 지역",[[4,"1","지도로 만나는 우리 지역 (지도, 우리 지역의 위치와 특성)"]],[]],["[4사06-01]","지역의 문화유산을 통해 문화유산의 의미와 유형을 알아보고, 문화유산의 가치를 탐색한다.","사회","우리 지역의 문화유산",[[4,"1","우리 지역의 국가유산·역사"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4사06-02]","지역의 박물관, 기념관, 유적지 등을 체험하고 지역의 역사를 이해한다.","사회","우리 지역의 문화유산",[[4,"1","우리 지역의 국가유산·역사"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4사07-01]","자원의 희소성으로 인해 경제활동에서 선택의 문제가 발생함을 이해하고, 경제활동에서 합리적 선택의 방법을 탐색한다.","사회","경제활동과 지역 간 교류",[[4,"1","경제활동과 지역 간 교류"]],["질문기반 탐구수업(2025) 착한 소비"]],["[4사07-02]","생산과 소비 활동을 파악하고, 인적⋅물적 교류의 사례를 통해 각 지역 및 사람들이 상호 의존 관계를 맺고 있음을 탐색한다.","사회","경제활동과 지역 간 교류",[[4,"1","경제활동과 지역 간 교류"]],["웹진 5호 사례5 생산과 소비"]],["[4사08-01]","학교 자치 사례를 통하여 민주주의의 의미를 이해하고, 학교생활에서 민주주의를 실천하는 능력을 기른다.","사회","민주주의와 자치",[[4,"2","민주주의와 자치 (학교생활 속 민주주의, 주민 자치)"]],["폰프리 스쿨"]],["[4사08-02]","지역에서 이루어지는 민주주의 사례를 통해 주민 자치와 주민 참여의 중요성을 파악하고, 지역사회의 문제 해결에 참여하는 태도를 기른다.","사회","민주주의와 자치",[[4,"2","민주주의와 자치 (학교생활 속 민주주의, 주민 자치)"]],[]],["[4사09-01]","생활 주변에서 찾을 수 있는 여러 가지 문제를 파악하고, 그 문제를 합리적으로 해결하는 능력을 기른다.","사회","지역문제를 해결하고 지역을 알리는 노력",[[4,"2","지역문제를 해결하고 지역을 알리는 노력 › 지역문제의 해결 관련 차시"]],[]],["[4사09-02]","지역의 자연환경, 역사, 문화, 생산물 등을 알리려는 지역사회의 노력을 알고 관심을 갖는다.","사회","지역문제를 해결하고 지역을 알리는 노력",[[4,"2","지역문제를 해결하고 지역을 알리는 노력"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4사10-01]","여러 지역의 자연환경과 인문환경의 특징을 살펴보고, 환경의 이용과 개발에 따른 변화를 탐구한다.","사회","다양한 환경과 삶의 모습",[[4,"2","지역문제를 해결하고 지역을 알리는 노력 › 지역의 환경과 변화 관련 차시"]],["웹진 6호 사례5 (재구성)"]],["[4사10-02]","사례에서 도시의 인구, 교통, 산업 등의 특징을 탐구하고, 도시에서의 삶의 모습을 이해한다.","사회","다양한 환경과 삶의 모습",[[4,"2","지역문제를 해결하고 지역을 알리는 노력 › 도시의 특징 관련 차시"]],[]],["[6사01-01]","우리나라 산지, 하천, 해안 지형의 위치를 확인하고 지형의 분포 특징을 탐구한다.","사회","우리나라 국토 여행",[[5,"1","우리나라의 지형·기후와 자연재해"]],[]],["[6사01-02]","독도의 지리적 특성과 독도에 대한 역사 기록을 바탕으로 영토로서 독도의 중요성을 이해한다.","사회","우리나라 국토 여행",[[5,"1","국토의 위치와 지리 탐구 (국토 여행, 독도)"],[6,"2","지구촌 사람들 (인구 분포, 지구촌 문제와 지속가능한 미래)"]],[]],["[6사02-01]","우리나라의 계절별 기후 특징을 자료에서 탐구하고, 기후변화로 인한 자연재해의 심각성을 이해한다.","사회","우리나라 지리 탐구",[[5,"1","우리나라의 지형·기후와 자연재해"]],[]],["[6사02-02]","우리나라의 지역별 인구 분포의 특징을 알아보고, 이에 따른 문제점과 해결 방안을 탐색한다.","사회","우리나라 지리 탐구",[[5,"1","우리나라의 인구 분포 › 인구 분포 관련 차시"]],[]],["[6사03-01]","일상 사례에서 법의 의미와 역할을 이해하고, 헌법에 규정된 인권이 일상생활에서 구현되는 사례를 조사하여 인권 친화적 태도를 기른다.","사회","법과 인권의 보장",[[5,"1","법의 역할과 인권 (인권 보호, 법과 인권의 보장)"]],["질문기반 탐구수업(2025) 인권"]],["[6사03-02]","일상생활에서 인권이 침해되는 사례를 찾아 그 해결 방안을 탐색하고, 인권을 보호하는 활동에 참여한다.","사회","법과 인권의 보장",[[5,"1","법의 역할과 인권 (인권 보호, 법과 인권의 보장)"]],["질문기반 탐구수업(2025) 인권"]],["[6사04-01]","선사 시대와 고조선의 유적과 유물을 활용하여 당시 사람들의 생활을 추론한다.","사회","유적과 유물로 살펴본 옛 사람들의 생활",[[5,"2","유적과 유물로 살펴본 옛 사람들의 생활 (선사·고조선, 고대, 고려)"]],[]],["[6사04-02]","역사 기록이나 유적과 유물에 나타난 고대 사람들의 생각과 생활을 추론한다.","사회","유적과 유물로 살펴본 옛 사람들의 생활",[[5,"2","유적과 유물로 살펴본 옛 사람들의 생활 (선사·고조선, 고대, 고려)"]],[]],["[6사04-03]","다양한 역사 자료를 활용하여 고려 시대 사회 모습과 사람들의 생활을 추론한다.","사회","유적과 유물로 살펴본 옛 사람들의 생활",[[5,"2","유적과 유물로 살펴본 옛 사람들의 생활 (선사·고조선, 고대, 고려)"]],[]],["[6사05-01]","조선 시대 사람들의 생각과 생활에 유교 문화가 미친 영향을 파악한다.","사회","달라지는 시대, 변화하는 생활 모습",[[5,"2","달라지는 시대, 변화하는 생활 모습 (조선, 조선 후기·개항)"]],[]],["[6사05-02]","조선 후기 사회⋅문화적 변화와 개항기 근대 문물 수용 과정에서 달라진 사람들의 생활을 이해한다.","사회","달라지는 시대, 변화하는 생활 모습",[[5,"2","달라지는 시대, 변화하는 생활 모습 (조선, 조선 후기·개항)"]],[]],["[6사06-01]","일제의 식민 통치와 이에 대한 저항이 사회와 생활에 미친 영향을 이해한다.","사회","식민 통치와 저항, 전쟁이 바꾼 사회와 생활",[[5,"2","식민 통치와 저항, 전쟁이 바꾼 사회와 생활"]],[]],["[6사06-02]","8⋅15 광복과 6⋅25 전쟁이 사회와 생활에 미친 영향을 파악한다.","사회","식민 통치와 저항, 전쟁이 바꾼 사회와 생활",[[5,"2","식민 통치와 저항, 전쟁이 바꾼 사회와 생활"]],[]],["[6사07-01]","분단으로 나타난 문제점과 분단과 관련된 장소를 평화의 장소로 만들려는 노력 등을 알아보고, 평화 통일을 위해 우리가 할 수 있는 일을 탐색한다.","사회","평화 통일을 위한 노력, 민주화와 산업화",[[6,"1","평화 통일을 위한 노력, 민주화와 산업화"]],[]],["[6사07-02]","민주화와 산업화로 인해 달라진 생활 문화를 사례를 들어 이해한다.","사회","평화 통일을 위한 노력, 민주화와 산업화",[[6,"1","평화 통일을 위한 노력, 민주화와 산업화"]],["웹진 5호 사례1 동물농장"]],["[6사08-01]","민주주의에서 선거의 의미와 역할을 파악하고, 시민의 주권 행사를 위해 선거에 참여하는 태도를 기른다.","사회","민주주의와 시민 참여",[[6,"1","민주주의와 선거·국가기관·시민 참여·미디어"]],["폰프리 스쿨"]],["[6사08-02]","민주 국가에서 국회, 행정부, 법원이 하는 일에 대해 이해하고, 각 국가기관의 권력을 분립 하는 이유를 탐색한다.","사회","민주주의와 시민 참여",[[6,"1","민주주의와 선거·국가기관·시민 참여·미디어"]],[]],["[6사08-03]","민주주의에서 미디어의 의미와 역할을 이해하고, 여러 가지 미디어의 내용을 비판적으로 분석하여 올바르게 이용하는 태도를 기른다.","사회","민주주의와 시민 참여",[[6,"1","민주주의와 선거·국가기관·시민 참여·미디어"]],["웹진 6호 사례1 미디어 홍수","폰프리 스쿨"]],["[6사09-01]","세계를 표현하는 다양한 공간 자료의 특징을 이해하고, 지구본과 세계지도에서 위치를 표현하는 방법을 익힌다.","사회","지구, 대륙 그리고 국가들",[[6,"1","세계를 표현하는 자료, 세계 여러 국가의 위치와 영토"]],[]],["[6사09-02]","세계 주요 대륙과 대양을 파악하고, 우리나라 및 세계 여러 국가의 위치와 영토의 특징을 이해한다.","사회","지구, 대륙 그리고 국가들",[[6,"1","세계를 표현하는 자료, 세계 여러 국가의 위치와 영토"]],[]],["[6사10-01]","세계의 여러 지역의 지형 경관을 살펴보고, 이를 통해 다양한 삶의 모습을 이해한다.","사회","세계의 자연환경",[[6,"2","세계의 자연환경 (지형 경관, 기후와 생활 모습)"]],[]],["[6사10-02]","세계의 다양한 기후를 알아보고 기후 환경과 인간생활 간의 관계를 탐구한다.","사회","세계의 자연환경",[[6,"2","세계의 자연환경 (지형 경관, 기후와 생활 모습) › 세계의 기후 관련 차시"]],[]],["[6사11-01]","시장경제에서 가계와 기업의 역할을 이해하고, 근로자의 권리와 기업의 자유 및 사회적 책임을 탐색한다.","사회","시장경제와 국가 간 거래",[[6,"2","시장경제와 국가 간 거래 (시장경제, 경제성장, 무역)"]],[]],["[6사11-02]","경제성장이 우리 생활에 미치는 영향을 파악하고, 빠른 경제성장으로 발생한 문제의 해결 방안을 탐색한다.","사회","시장경제와 국가 간 거래",[[6,"2","시장경제와 국가 간 거래 (시장경제, 경제성장, 무역)"]],[]],["[6사11-03]","사례를 통해 무역의 의미를 이해하고, 국가 간 무역이 발생하는 이유를 탐구한다.","사회","시장경제와 국가 간 거래",[[6,"2","시장경제와 국가 간 거래 (시장경제, 경제성장, 무역)"]],[]],["[6사12-01]","세계의 인구 분포를 파악하고 여러 국가의 인구 특징을 탐구한다.","사회","지구촌 사람들",[[6,"2","지구촌 사람들 (인구 분포, 지구촌 문제와 지속가능한 미래)"]],[]],["[6사12-02]","지구촌을 위협하는 다양한 문제들을 파악하고, 지속가능한 미래를 위한 해결 방안을 탐색한다.","사회","지구촌 사람들",[[6,"2","지구촌 사람들 (인구 분포, 지구촌 문제와 지속가능한 미래)"]],[]],["[4과01-01]","일상생활에서 힘과 관련된 현상에 흥미를 갖고, 물체를 밀거나 당길 때 나타나는 현상을 관찰할 수 있다.","과학","힘과 우리 생활",[[3,"1","1. 힘과 우리 생활"]],[]],["[4과01-02]","수평잡기 활동을 통해 물체의 무게를 비교할 수 있다.","과학","힘과 우리 생활",[[3,"1","1. 힘과 우리 생활"]],[]],["[4과01-03]","무게를 정확히 비교하기 위해서는 저울이 필요함을 알고, 저울을 사용해 무게를 비교할 수 있다.","과학","힘과 우리 생활",[[3,"1","1. 힘과 우리 생활"]],[]],["[4과01-04]","지레, 빗면과 같은 도구를 이용하면 물체를 들어 올릴 때 드는 힘의 크기가 달라짐을 알고, 도구가 일상생활에서 어떻게 쓰이는지 조사하여 공유할 수 있다.","과학","힘과 우리 생활",[[3,"1","1. 힘과 우리 생활"]],[]],["[4과02-01]","여러 가지 동물을 관찰하여 특징에 따라 동물을 분류할 수 있다.","과학","동물의 생활",[[3,"1","2. 동물의 생활"]],[]],["[4과02-02]","다양한 환경에 서식하는 동물을 조사하여 동물의 생김새와 생활 방식이 환경과 관련되어 있음을 설명할 수 있다.","과학","동물의 생활",[[3,"1","2. 동물의 생활"]],["질문기반 탐구수업(2025) 단원 설계 예시"]],["[4과02-03]","동물의 특징을 이용하여 일상생활에서 활용할 수 있는 생활용품을 설계하여 협력적으로 소통할 수 있다.","과학","동물의 생활",[[3,"1","2. 동물의 생활"]],[]],["[4과03-01]","여러 가지 식물을 관찰하여 특징에 따라 식물을 분류할 수 있다.","과학","식물의 생활",[[3,"1","3. 식물의 생활"]],[]],["[4과03-02]","다양한 환경에 서식하는 식물을 조사하여 식물의 생김새와 생활 방식이 환경과 관련되어 있음을 설명할 수 있다.","과학","식물의 생활",[[3,"1","3. 식물의 생활"]],[]],["[4과03-03]","식물의 특징을 이용하여 일상생활에서 활용할 수 있는 생활용품을 설계하여 협력적으로 소통할 수 있다.","과학","식물의 생활",[[3,"1","3. 식물의 생활"]],[]],["[4과04-01]","동물의 한살이를 직접 관찰하고, 관찰한 내용을 글과 그림으로 표현할 수 있다.","과학","생물의 한살이",[[3,"1","4. 생물의 한살이"]],[]],["[4과04-02]","식물이 자라는 데 필요한 조건을 찾는 실험을 설계하여 수행할 수 있다.","과학","생물의 한살이",[[3,"1","4. 생물의 한살이"]],[]],["[4과04-03]","생물의 한살이 과정을 조사하여 생물에 따라 한살이의 유형이 다양함을 소개하는 자료를 만들어 공유할 수 있다.","과학","생물의 한살이",[[3,"1","4. 생물의 한살이"]],[]],["[4과05-01]","물체를 이루는 여러 가지 물질의 성질을 비교하고, 물질의 종류에 따라 물체를 분류할 수 있다.","과학","물체와 물질",[[3,"2","1. 물체와 물질"]],[]],["[4과05-02]","물질의 세 가지 상태인 고체, 액체, 기체의 성질을 관찰하여 비교할 수 있다.","과학","물체와 물질",[[3,"2","1. 물체와 물질"]],[]],["[4과05-03]","다양한 물질의 성질을 이용하여 쓰임새 있는 물체를 설계할 수 있다.","과학","물체와 물질",[[3,"2","1. 물체와 물질"]],[]],["[4과06-01]","지구가 대기로 둘러싸여 있음을 알고, 지구 표면을 구성하는 육지와 바다의 특징을 비교할 수 있다.","과학","지구와 바다",[[3,"2","2. 지구와 바다"]],[]],["[4과06-02]","바닷물의 특징을 육지의 물과 비교하고, 바닷가에서 볼 수 있는 다양한 지형을 조사할 수 있다.","과학","지구와 바다",[[3,"2","2. 지구와 바다"]],[]],["[4과06-03]","밀물과 썰물의 차이를 알고, 갯벌의 가치와 보전의 필요성을 설득⋅홍보할 수 있다.","과학","지구와 바다",[[3,"2","2. 지구와 바다"]],[]],["[4과07-01]","여러 가지 물체를 이용하여 소리를 내보고, 소리가 나는 물체는 떨림이 있음을 설명할 수 있다.","과학","소리의 성질",[[3,"2","3. 소리의 성질"]],[]],["[4과07-02]","큰 소리와 작은 소리, 높은 소리와 낮은 소리를 구분하고, 세기와 높낮이가 다른 소리를 낼 수 있다.","과학","소리의 성질",[[3,"2","3. 소리의 성질"]],[]],["[4과07-03]","여러 가지 물질을 통하여 소리가 전달되는 것을 관찰하고, 소음을 줄이는 방법을 찾아 일상생활에서 실천할 수 있다.","과학","소리의 성질",[[3,"2","3. 소리의 성질"]],[]],["[4과08-01]","생활 속 감염병의 사례를 알고, 다양한 질병과 그 위험성에 대해 토의할 수 있다.","과학","감염병과 건강한 생활",[[3,"2","4. 감염병과 건강한 생활"]],[]],["[4과08-02]","감염병으로부터 안전한 사회에 관심을 가지고, 여러 감염 과정을 통해 생활 습관과 감염병 유행과의 연관성을 설명할 수 있다.","과학","감염병과 건강한 생활",[[3,"2","4. 감염병과 건강한 생활"]],[]],["[4과08-03]","건강한 생활을 위해 필요한 감염병 예방 수칙을 공유하고, 생활 속에서 실천할 수 있다.","과학","감염병과 건강한 생활",[[3,"2","4. 감염병과 건강한 생활"]],[]],["[4과09-01]","자석과 여러 가지 물체를 가까이했을 때 나타나는 현상을 관찰하고, 자석과 자석에 붙는 물체 사이에 작용하는 힘의 특징을 말할 수 있다.","과학","자석의 이용",[[4,"1","1. 자석의 이용"]],[]],["[4과09-02]","자석과 자석을 가까이했을 때 나타나는 현상을 관찰하여 그 특징을 자석의 극과 관련지어 설명할 수 있다.","과학","자석의 이용",[[4,"1","1. 자석의 이용"]],[]],["[4과09-03]","자석을 이용하여 일상생활을 편리하게 하는 장치를 설계할 수 있다.","과학","자석의 이용",[[4,"1","1. 자석의 이용"]],[]],["[4과10-01]","물이 세 가지 상태로 변할 수 있음을 알고, 우리 주변에서 예를 찾을 수 있다.","과학","물의 상태 변화",[[4,"1","2. 물의 상태 변화"]],[]],["[4과10-02]","물이 얼 때, 얼음이 녹을 때, 물이 증발할 때와 끓을 때, 수증기가 응결할 때의 변화를 관찰할 수 있다.","과학","물의 상태 변화",[[4,"1","2. 물의 상태 변화"]],[]],["[4과10-03]","물의 상태 변화를 이용하여 물을 얻을 수 있는 장치를 설계하고 만들 수 있다.","과학","물의 상태 변화",[[4,"1","2. 물의 상태 변화"]],[]],["[4과11-01]","흐르는 물의 작용과 강 주변 지형의 특징을 관련지을 수 있다.","과학","땅의 변화",[[4,"1","3. 땅의 변화"]],[]],["[4과11-02]","화산의 의미와 화산 활동으로 나오는 물질을 알고, 화산 활동을 모형으로 표현할 수 있다.","과학","땅의 변화",[[4,"1","3. 땅의 변화"]],[]],["[4과11-03]","화성암을 관찰하고 분류할 수 있다.","과학","땅의 변화",[[4,"1","3. 땅의 변화"]],[]],["[4과11-04]","화산 활동과 지진이 우리 생활에 미치는 영향을 조사하여, 대처 방법을 실천할 수 있다.","과학","땅의 변화",[[4,"1","3. 땅의 변화"]],[]],["[4과12-01]","균류⋅원생생물⋅세균을 관찰하여 특징과 사는 곳을 설명할 수 있다.","과학","다양한 생물과 우리 생활",[[4,"1","4. 다양한 생물과 우리 생활"]],[]],["[4과12-02]","균류⋅원생생물⋅세균이 우리 생활에 미치는 영향을 조사하여 발표할 수 있다.","과학","다양한 생물과 우리 생활",[[4,"1","4. 다양한 생물과 우리 생활"]],[]],["[4과12-03]","우리 생활에 생명과학이 이용되는 사례를 소개하는 자료를 만들어 공유할 수 있다.","과학","다양한 생물과 우리 생활",[[4,"1","4. 다양한 생물과 우리 생활"]],[]],["[4과13-01]","달의 모양과 표면, 달의 위상변화를 관찰하여 밤하늘 관찰에 흥미를 가질 수 있다.","과학","밤하늘 관찰",[[4,"2","1. 밤하늘 관찰"]],[]],["[4과13-02]","태양계 구성원을 알고, 태양과 행성을 조사할 수 있다.","과학","밤하늘 관찰",[[4,"2","1. 밤하늘 관찰"]],[]],["[4과13-03]","별의 정의를 알고, 북극성 주변의 별자리를 관찰할 수 있다.","과학","밤하늘 관찰",[[4,"2","1. 밤하늘 관찰"]],[]],["[4과14-01]","생태계의 구성 요소를 조사하여 생물 요소와 비생물 요소로 분류할 수 있다.","과학","생물과 환경",[[4,"2","2. 생물과 환경"]],[]],["[4과14-02]","생물 요소들의 먹고 먹히는 관계를 조사하여 먹이그물로 표현할 수 있다.","과학","생물과 환경",[[4,"2","2. 생물과 환경"]],[]],["[4과14-03]","인간 활동이 생태계에 미치는 영향을 조사하고, 생태계 보전을 위해 우리가 할 수 있는 일을 토의하여 실천할 수 있다.","과학","생물과 환경",[[4,"2","2. 생물과 환경"]],[]],["[4과15-01]","실험을 통해 기체가 무게가 있음을 설명할 수 있다.","과학","여러 가지 기체",[[4,"2","3. 여러 가지 기체"]],[]],["[4과15-02]","온도나 압력에 따라 기체의 부피가 달라지는 현상을 관찰하고, 우리 주변에서 예를 찾을 수 있다.","과학","여러 가지 기체",[[4,"2","3. 여러 가지 기체"]],[]],["[4과15-03]","일상생활에서 이용되는 기체의 종류와 성질을 조사하고, 여러 가지 기체에 대해 흥미를 느낄 수 있다.","과학","여러 가지 기체",[[4,"2","3. 여러 가지 기체"]],[]],["[4과15-04]","기체의 성질을 이용하여 작동시킬 수 있는 장치를 설계하고 만들 수 있다.","과학","여러 가지 기체",[[4,"2","3. 여러 가지 기체"]],[]],["[4과16-01]","기후변화 현상의 예를 알고, 기후변화가 인간의 활동과 관련되어 있음을 토의할 수 있다.","과학","기후변화와 우리 생활",[[4,"2","4. 기후변화와 우리 생활"]],[]],["[4과16-02]","기후변화의 심각성에 관심을 가지고, 기후변화가 우리 생활과 환경에 미치는 영향을 설명할 수 있다.","과학","기후변화와 우리 생활",[[4,"2","4. 기후변화와 우리 생활"]],[]],["[4과16-03]","기후변화 대응 방법을 조사하고, 생활 속에서 기후변화 대응 방법을 실천할 수 있다.","과학","기후변화와 우리 생활",[[4,"2","4. 기후변화와 우리 생활"]],[]],["[6과01-01]","지층의 특징을 알고, 지층의 형성 과정을 모형으로 표현할 수 있다.","과학","지층과 화석",[[5,"1","1. 지층과 화석"]],[]],["[6과01-02]","지층이 퇴적암으로 이루어짐을 알고, 퇴적암을 알갱이의 크기에 따라 분류할 수 있다.","과학","지층과 화석",[[5,"1","1. 지층과 화석"]],[]],["[6과01-03]","화석의 생성 과정을 모형으로 설명하고, 지구의 과거 생물과 환경을 추리하는 활동을 통해 화석의 가치를 인식할 수 있다.","과학","지층과 화석",[[5,"1","1. 지층과 화석"]],[]],["[6과02-01]","물체를 보기 위해서 빛이 있어야 함을 알고, 빛의 성질에 대해 흥미를 느낄 수 있다.","과학","빛의 성질",[[5,"1","2. 빛의 성질"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과02-02]","빛이 나아가는 현상을 관찰하여 빛이 직진, 반사, 굴절하는 성질이 있음을 말할 수 있다.","과학","빛의 성질",[[5,"1","2. 빛의 성질"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과02-03]","거울과 렌즈의 쓰임새를 조사하고 거울이나 렌즈를 이용한 장치를 창의적으로 만들 수 있다.","과학","빛의 성질",[[5,"1","2. 빛의 성질"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과03-01]","용해 현상의 의미를 알고, 용질의 종류와 물의 온도에 따라 물에 녹는 용질의 양이 달라짐을 비교할 수 있다.","과학","용해와 용액",[[5,"1","3. 용해와 용액"]],[]],["[6과03-02]","용질이나 용매의 양에 따라 용액의 진하기가 달라짐을 관찰하고, 용액의 상대적인 진하기를 비교할 수 있다.","과학","용해와 용액",[[5,"1","3. 용해와 용액"]],[]],["[6과03-03]","일상생활에서 용액이 쓰이는 사례를 조사하여 용액의 필요성을 알리는 자료를 만들고 공유할 수 있다.","과학","용해와 용액",[[5,"1","3. 용해와 용액"]],[]],["[6과04-01]","뼈와 근육의 생김새를 관찰하고 모형을 만들어 몸이 움직이는 원리를 설명할 수 있다.","과학","우리 몸의 구조와 기능",[[5,"1","4. 우리 몸의 구조와 기능"]],[]],["[6과04-02]","소화, 순환, 호흡, 배설 기관의 구조와 기능을 알아보고, 우리 몸의 여러 기관이 서로 관련되어 있음을 설명할 수 있다.","과학","우리 몸의 구조와 기능",[[5,"1","4. 우리 몸의 구조와 기능"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과04-03]","우리 몸의 여러 기관과 관련된 질병을 조사하고, 건강을 유지하기 위한 생활 방식을 실천할 수 있다.","과학","우리 몸의 구조와 기능",[[5,"1","4. 우리 몸의 구조와 기능"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과05-01]","알갱이의 크기가 다른 고체 혼합물과 골고루 섞이지 않는 액체 혼합물을 분리할 수 있다.","과학","혼합물의 분리",[[5,"2","1. 혼합물의 분리"]],[]],["[6과05-02]","물에 용해되는 성질을 이용하여 고체 혼합물을 분리하고, 물을 증발시켜 물에 용해된 고체 물질을 분리할 수 있다.","과학","혼합물의 분리",[[5,"2","1. 혼합물의 분리"]],[]],["[6과05-03]","지속가능한 삶을 위한 과학기술 사례 중 혼합물의 분리를 이용한 장치를 조사하여 공유할 수 있다.","과학","혼합물의 분리",[[5,"2","1. 혼합물의 분리"]],[]],["[6과06-01]","기상 요소를 조사하고, 날씨가 우리 생활에 주는 영향을 인식할 수 있다.","과학","날씨와 우리 생활",[[5,"2","2. 날씨와 우리 생활"]],[]],["[6과06-02]","이슬, 안개, 구름을 관찰하고, 공통점과 차이점을 찾을 수 있다.","과학","날씨와 우리 생활",[[5,"2","2. 날씨와 우리 생활"]],[]],["[6과06-03]","고기압과 저기압의 분포에 따른 날씨의 특징을 기상 요소로 표현할 수 있다.","과학","날씨와 우리 생활",[[5,"2","2. 날씨와 우리 생활"]],[]],["[6과07-01]","물체의 따뜻하고 차가운 정도를 온도로 표현함을 알고, 온도계를 이용하여 온도를 측정할 수 있다.","과학","열과 우리 생활",[[5,"2","3. 열과 우리 생활"]],[]],["[6과07-02]","온도가 다른 두 물체가 접촉했을 때 두 물체의 온도 변화를 관찰하고 그 원인을 추리할 수 있다.","과학","열과 우리 생활",[[5,"2","3. 열과 우리 생활"]],[]],["[6과07-03]","주위에서 열의 이동으로 나타나는 현상을 관찰하여 열의 이동 방식이 다양함을 설명할 수 있다.","과학","열과 우리 생활",[[5,"2","3. 열과 우리 생활"]],[]],["[6과07-04]","일상생활에서 단열을 이용하는 사례를 조사하고, 온도를 오랫동안 일정하게 유지할 수 있는 장치를 창의적으로 만들 수 있다.","과학","열과 우리 생활",[[5,"2","3. 열과 우리 생활"]],[]],["[6과08-01]","우리가 생활에서 이용하는 다양한 자원을 조사하고, 자원의 유한함을 설명할 수 있다.","과학","자원과 에너지",[[5,"2","4. 자원과 에너지"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과08-02]","재생에너지의 종류를 조사하고, 에너지를 지속가능하게 이용하는 방법에 관심을 갖는다.","과학","자원과 에너지",[[5,"2","4. 자원과 에너지"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과08-03]","자원과 에너지의 효율적인 이용 방법에 대해 탐색하고, 생활 속에서 실천할 수 있는 다양한 사례를 공유할 수 있다.","과학","자원과 에너지",[[5,"2","4. 자원과 에너지"],[6,"2","보충: 빛의 성질·우리 몸의 구조와 기능·자원과 에너지 (2022 개정 5학년 내용)"]],[]],["[6과11-01]","생물을 이루고 있는 기본 단위인 세포를 현미경으로 관찰할 수 있다.","과학","식물의 구조와 기능",[[6,"1","3. 식물의 구조와 기능"]],[]],["[6과11-02]","식물의 각 기관의 구조를 관찰하고, 기능을 알아보는 실험을 수행하여 식물 각 기관의 구조와 기능을 설명할 수 있다.","과학","식물의 구조와 기능",[[6,"1","3. 식물의 구조와 기능"]],[]],["[6과11-03]","여러 가지 식물의 특징을 설명하는 자료를 만들어 공유할 수 있다.","과학","식물의 구조와 기능",[[6,"1","3. 식물의 구조와 기능"]],[]],["[6과12-01]","하루 동안 태양과 별을 관찰하여 위치 변화의 규칙성을 찾을 수 있다.","과학","지구의 운동",[[6,"1","4. 지구의 운동"]],[]],["[6과12-02]","지구의 자전을 알고, 낮과 밤이 생기는 이유를 설명할 수 있다.","과학","지구의 운동",[[6,"1","4. 지구의 운동"]],[]],["[6과12-03]","지구의 공전을 알고, 계절에 따라 달라지는 별자리를 관찰할 수 있다.","과학","지구의 운동",[[6,"1","4. 지구의 운동"]],["웹진 6호 사례4 별자리 모형"]],["[6과13-01]","태양 고도 측정기로 하루 동안 태양 고도, 그림자 길이, 기온을 측정하여 이들의 관계를 찾을 수 있다.","과학","계절의 변화",[[6,"1","4. 지구의 운동"]],[]],["[6과13-02]","계절에 따른 태양의 남중 고도와 낮의 길이 사이의 관계를 자료에 근거하여 추론할 수 있다.","과학","계절의 변화",[[6,"1","4. 지구의 운동"]],[]],["[6과13-03]","계절 변화의 원인을 지구의 자전축이 기울어진 채 공전하는 것으로 설명할 수 있다.","과학","계절의 변화",[[6,"1","4. 지구의 운동"]],[]],["[6과14-01]","물질의 성질이 달라지는 변화와 달라지지 않는 변화를 관찰하여 비교할 수 있다.","과학","물질의 연소",[[6,"2","2. 물질의 연소"]],[]],["[6과14-02]","물질이 연소할 때 나타나는 공통적인 현상을 관찰하고, 연소의 조건을 찾을 수 있다.","과학","물질의 연소",[[6,"2","2. 물질의 연소"]],[]],["[6과14-03]","연소 전과 후의 물질을 비교하여 연소 과정에서 물질의 성질이 달라짐을 설명할 수 있다.","과학","물질의 연소",[[6,"2","2. 물질의 연소"]],[]],["[6과14-04]","연소 과정에서 생성되는 물질로 인한 생태계의 피해 사례를 수집하고 분석하여 해결책을 제안하고 공유할 수 있다.","과학","물질의 연소",[[6,"2","2. 물질의 연소"]],[]],["[6과15-01]","전지와 전구, 전선을 연결하여 전구에 불을 켜보고, 불이 켜지는 전기 회로의 특징을 말할 수 있다.","과학","전기의 이용",[[6,"2","3. 전기의 이용"]],[]],["[6과15-02]","전지 한 개를 연결한 전기 회로와 전지 두 개를 직렬연결한 전기 회로의 특징을 비교할 수 있다.","과학","전기의 이용",[[6,"2","3. 전기의 이용"]],[]],["[6과15-03]","전자석을 만들어 전자석의 성질을 탐색하고 전자석이 사용되는 예를 조사할 수 있다.","과학","전기의 이용",[[6,"2","3. 전기의 이용"]],[]],["[6과15-04]","전기를 효율적이고 안전하게 사용하는 방법을 조사하여 실천 계획을 세우고 일상생활에서 실천할 수 있다.","과학","전기의 이용",[[6,"2","3. 전기의 이용"]],[]],["[6과16-01]","미래 사회에 일어날 수 있는 문제를 조사하고, 문제를 해결하는 데 과학이 기여할 수 있는 방법을 토의할 수 있다.","과학","과학과 나의 진로",[[6,"2","4. 과학과 나의 진로"]],[]],["[6과16-02]","다양한 진로가 과학과 관련됨을 알고, 자신의 진로를 과학과 관련지어 설명할 수 있다.","과학","과학과 나의 진로",[[6,"2","4. 과학과 나의 진로"]],[]],["[4도01-01]","자신의 감정을 소중히 여기며 존중하는 태도를 바탕으로 내가 누구인가를 탐구한다.","도덕","자신과의 관계",[[3,"1","1. 나를 찾아 떠나는 여행"]],["웹진 5호 사례2 나다움"]],["[4도01-02]","정직의 의미를 알고 모범적인 사례를 탐색하여 바르게 행동하려는 태도를 기른다.","도덕","자신과의 관계",[[4,"1","1. 바르고 곧은 길"]],[]],["[4도01-03]","성실한 생활의 모범 사례를 탐색하고 시간 관리를 위한 생활을 계획하여 지속적인 자기 성장을 모색한다.","도덕","자신과의 관계",[[3,"1","2. 성실하게 사는 삶"]],["웹진 5호 사례2 나다움"]],["[4도01-04]","다른 사람의 관점을 수용할 수 있는지를 도덕적으로 검토하고 도덕규범을 내면화하여 도덕적으로 행동할 수 있는 자세를 기른다.","도덕","자신과의 관계",[[4,"1","2. 도덕적인 나"]],[]],["[4도02-01]","효, 우애의 의미와 필요성을 명료하게 이해하고 가족의 행복을 위해 할 수 있는 일을 탐색하여 실천 계획을 세운다.","도덕","타인과의 관계",[[3,"1","3. 함께하는 우리 가족"]],[]],["[4도02-02]","친구 사이의 배려에 대한 올바른 이해를 바탕으로 일상생활에서 배려에 기반한 도덕적 관계를 맺을 수 있는 방안을 탐색한다.","도덕","타인과의 관계",[[4,"1","3. 배려하는 우리"]],[]],["[4도02-03]","공감의 태도가 필요한 이유를 이해하고 도덕적 상상력을 바탕으로 대상과 상황에 따라 감정을 나누는 방법을 탐구하여 실천한다.","도덕","타인과의 관계",[[3,"2","5. 너와 나의 공감"],[4,"1","2. 도덕적인 나"]],[]],["[4도03-01]","불공정의 사례를 탐구하고, 일상생활에서 공정의 가치를 추구하는 활동을 통해 실천 의지를 함양한다.","도덕","사회⋅공동체와의 관계",[[3,"2","6. 함께 가는 공정의 길"]],["웹진 6호 사례5 (재구성)"]],["[4도03-02]","디지털 사회에서 발생하는 다양한 문제를 살펴보고, 해결 방안을 탐구하여 정보통신 윤리에 대한 민감성을 기른다.","도덕","사회⋅공동체와의 관계",[[4,"2","5. 바람직한 디지털 사회"]],["폰프리 스쿨","질문기반 탐구수업(2025) 토론 질문"]],["[4도03-03]","통일의 필요성을 이해하고, 통일 감수성을 길러 바람직한 통일의 방향을 모색한다.","도덕","사회⋅공동체와의 관계",[[4,"2","6. 통일로 가는 한 걸음"]],[]],["[4도04-01]","생명 경시 사례를 조사하고 문제 해결 방법을 탐구함으로써 생명의 소중함을 이해한다.","도덕","자연과의 관계",[[3,"2","7. 생명을 소중히 여기는 우리"]],[]],["[4도04-02]","인간과 자연이 함께 살아야 하는 이유를 이해하고 공생을 위한 구체적인 실천 계획을 세우며 생태 감수성을 기른다.","도덕","자연과의 관계",[[4,"2","7. 자연은 소중해요"]],["질문기반 탐구수업(2025) 착한 소비"]],["[6도01-01]","자주적인 삶에 대한 이해를 바탕으로 자신의 생활계획을 세우고 실천하여 주체적인 삶의 태도를 기른다.","도덕","자신과의 관계",[[5,"1","1. 내 삶의 주인이 되는 나"]],[]],["[6도01-02]","생활 습관에 대한 성찰을 통해 자기 생활을 점검하고 올바른 계획을 세워 이를 실천한다.","도덕","자신과의 관계",[[5,"1","2. 반성과 성찰로 성장하는 나"]],[]],["[6도01-03]","자기가 하고 싶은 일을 선택할 때 도덕적 고려의 필요성을 알고 자신의 특기와 적성을 탐색하여 진로계획을 수립한다.","도덕","자신과의 관계",[[6,"1","1. 나는 꿈 요리사"]],[]],["[6도02-01]","봉사의 의미와 중요성을 이해하고, 타인이 처한 상황과 환경에 대한 주의 깊은 관심을 바탕으로 봉사를 실천한다.","도덕","타인과의 관계",[[5,"1","3. 함께 사는 세상, 봉사하는 우리"]],[]],["[6도02-02]","편견이 발생하는 이유를 탐색하여 해결 방안을 살펴보고, 다양성 존중을 바탕으로 다른 사람과 올바른 관계를 맺기 위한 실천 방안을 탐구한다.","도덕","타인과의 관계",[[6,"1","2. 다름을 존중하는 우리"]],[]],["[6도02-03]","인간과 인공지능 로봇 간의 다양한 관계를 파악하고 도덕에 기반을 둔 관계 형성의 필요성을 탐구한다.","도덕","타인과의 관계",[[6,"1","3. 인공지능 로봇 그리고 나"]],[]],["[6도03-01]","인권과 관련된 다양한 사례를 살펴보고 인권에 관한 감수성을 길러 이를 실천하려는 의지를 함양한다.","도덕","사회⋅공동체와의 관계",[[5,"2","5. 모두에게 인권을"]],["질문기반 탐구수업(2025) 인권"]],["[6도03-02]","정의에 관한 관심을 토대로 공동체 규칙의 중요성을 살펴보고 직접 공정한 규칙을 고안 하며 기초적인 시민의식을 기른다.","도덕","사회⋅공동체와의 관계",[[5,"2","6. 공동체를 정의롭게!"]],[]],["[6도03-03]","통일과정과 통일 이후 사회의 여러 가지 상황을 예상하고 바람직한 통일과정과 통일 국가의 사회상을 제시한다","도덕","사회⋅공동체와의 관계",[[6,"2","5. 통일 한반도의 어느 날"]],[]],["[6도03-04]","다른 나라 사람들이 처한 여러 가지 상황을 종합적으로 이해하고 해결 방안을 탐구하며 인류애를 기른다.","도덕","사회⋅공동체와의 관계",[[6,"2","6. 사랑, 우리를 넘어 세계로"]],[]],["[6도04-01]","지구의 환경 위기 상황을 이해하고, 이를 극복하기 위한 다양한 방안을 찾아 자신의 일상에서 실천하고자 노력한다.","도덕","자연과의 관계",[[5,"2","7. 지구의 내일을 심는 우리"]],[]],["[6도04-02]","지속가능한 삶의 의미를 탐구하고 미래 세대에 대한 책임을 강화하여 자연의 다양성을 존중하고 생산성을 유지할 수 있는 미래를 위한 실천 방안을 찾는다.","도덕","자연과의 관계",[[6,"2","7. 우리 모두의 미래를 위한 선택"]],[]],["[6실01-01]","아동기의 발달 특징을 이해하고 성장발달에 필요한 조건과 방법을 탐색한다.","실과","인간 발달과 주도적 삶",[[5,"1","1. 건강한 발달과 생활 (발달·식생활·의생활)"]],[]],["[6실01-02]","건강한 발달을 위한 자기 관리 방법을 탐색하고, 일상생활 속에서 올바른 생활습관과 태도를 갖도록 계획하여 실천한다.","실과","인간 발달과 주도적 삶",[[5,"1","1. 건강한 발달과 생활 (발달·식생활·의생활)"]],[]],["[6실01-03]","건강한 가정생활을 위해 가족원 모두에게 다양한 요구가 있음을 이해하여 서로에 대한 배려와 돌봄을 실천한다.","실과","인간 발달과 주도적 삶",[[6,"1","1. 가정생활과 진로"]],[]],["[6실01-04]","균형 잡힌 식사의 중요성과 조건을 탐색하여 자신의 식습관을 검토해 보고 건강한 식습관 형성에 적용한다.","실과","인간 발달과 주도적 삶",[[5,"1","1. 건강한 발달과 생활 (발달·식생활·의생활)"]],[]],["[6실01-05]","옷의 기능을 이해하여 평소 자신의 옷차림을 살펴보고 건강하고 적절한 옷 입기를 실천한다.","실과","인간 발달과 주도적 삶",[[5,"1","1. 건강한 발달과 생활 (발달·식생활·의생활)"]],[]],["[6실01-06]","가정일을 수행하는 과정에서 일의 가치와 중요성을 이해하고, 가정생활을 유지하는 데 필요한 가정일의 종류를 탐색한다.","실과","인간 발달과 주도적 삶",[[6,"1","1. 가정생활과 진로"]],[]],["[6실01-07]","직업의 필요성을 이해하고 적성, 흥미, 성격에 따라 진로 발달 계획을 세우고 주도적으로 탐색한다.","실과","인간 발달과 주도적 삶",[[6,"1","1. 가정생활과 진로"]],[]],["[6실02-01]","시간이나 용돈과 같은 생활자원이 제한되어 있음을 이해하고, 생활자원의 사용가치를 높이는 방법을 탐색한다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리"]],[]],["[6실02-02]","생활자원 관리의 필요성을 인식하고, 생활자원의 합리적인 보관과 활용방법을 익힌다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리 › 시간을 가치 있게 사용해 볼까요"]],[]],["[6실02-03]","생활자원의 올바른 사용이 가정과 환경에 도움이 됨을 이해하고 재활용, 재사용 등 환경을 고려한 관리 방법을 실천한다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리"]],[]],["[6실02-04]","식재료 생산과 선택의 중요성을 인식하고 여러 식재료의 고유하고 다양한 맛을 경험하여 자신의 식사에 적용한다.","실과","생활환경과 지속가능한 선택",[[6,"2","6. 식생활과 의생활"]],[]],["[6실02-05]","음식의 조리과정을 체험하여 자기 간식이나 식사를 스스로 마련하는 식생활을 실천한다.","실과","생활환경과 지속가능한 선택",[[5,"2","6. 식생활과 의생활의 실천 › 간식이나 식사를 스스로 마련해 볼까요"]],[]],["[6실02-06]","우리나라 밥상차림을 이해하고, 함께 식사하는 즐거움을 경험하면서 이 과정에서 식사 예절을 실천한다.","실과","생활환경과 지속가능한 선택",[[6,"2","6. 식생활과 의생활 › 식사 예절을 실천하며 즐겁게 식사해 볼까요"]],[]],["[6실02-07]","의생활 용품이 만들어지는 과정을 탐색하여 옷이나 생활용품이 어떻게 구성되는지를 설명한다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리 › 시간을 가치 있게 사용해 볼까요"]],[]],["[6실02-08]","다양한 도구와 재료를 활용하여 간단한 생활용품을 만들어 보면서 직접 만들어 쓰는 즐거움과 창의적 태도를 가진다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리 › 시간을 가치 있게 사용해 볼까요"]],[]],["[6실02-09]","간단한 옷의 수선 등 의생활과 관련된 문제를 스스로 해결하려는 태도를 가진다.","실과","생활환경과 지속가능한 선택",[[5,"2","6. 식생활과 의생활의 실천"]],[]],["[6실02-10]","자신의 생활공간을 쾌적하고 위생적으로 관리하는 것의 중요성을 알고, 정리정돈과 청소 및 쓰레기 처리의 방법을 익혀 실천한다.","실과","생활환경과 지속가능한 선택",[[5,"1","3. 생활자원과 생활 공간 관리 › 시간을 가치 있게 사용해 볼까요"],[6,"1","3. 지속가능한 선택 › 생활자원 사용과 처리의 중요성을 알아볼까요"]],[]],["[6실02-11]","생태 지향적 삶을 위해 자신의 의식주 생활에서 할 수 있는 구체적인 행동을 계획하여 실천한다.","실과","생활환경과 지속가능한 선택",[[6,"1","3. 지속가능한 선택 › 생활자원 사용과 처리의 중요성을 알아볼까요"]],[]],["[6실03-01]","발명의 의미를 이해하고, 일상생활을 바꾼 발명품을 탐색하여 발명과 기술에 대한 중요성과 가치를 인식한다.","실과","기술적 문제해결과 혁신",[[6,"2","4. 발명과 특허"]],[]],["[6실03-02]","발명사고기법과 기술적 문제 해결 과정을 이해하고, 다양한 재료를 활용하여 생활 속 문제를 해결할 수 있는 창의적인 제품을 구상하고 만들어 봄으로써 실천적 태도를 갖는다.","실과","기술적 문제해결과 혁신",[[6,"2","4. 발명과 특허 › 여러 가지 발명 사고 기법을 알아볼까요"]],[]],["[6실03-03]","발명과 특허의 관계를 이해하고, 특허 침해 사례를 통하여 지식재산권의 중요성을 인식하여 올바른 방법으로 활용한다.","실과","기술적 문제해결과 혁신",[[6,"2","4. 발명과 특허 › 여러 가지 발명 사고 기법을 알아볼까요"]],[]],["[6실03-04]","수송의 의미와 수송 수단의 발달과정에 대한 이해를 바탕으로 생활 속 다양한 수송 수단을 탐색한다.","실과","기술적 문제해결과 혁신",[[5,"2","4. 우리 생활과 수송"]],[]],["[6실03-05]","수송 수단의 구성 요소를 이해하고, 친환경 에너지를 적용한 다양한 수송 수단의 시제품을 만들어 수송기술의 가치를 인식한다.","실과","기술적 문제해결과 혁신",[[5,"2","4. 우리 생활과 수송"]],[]],["[6실04-01]","친환경 건설 구조물을 이해하고, 생활 속 건설 구조물을 탐색하여 간단한 구조물을 체험하면서 건설기술에 대한 가치를 인식한다.","실과","지속가능한 기술과 융합",[[5,"2","5. 건설 기술과 디지털 기술"]],[]],["[6실04-02]","생활 속 디지털 기술의 중요성을 이해하고, 디지털 기기와 디지털 콘텐츠 저작 도구를 사용하여 발표 자료를 만들어 보면서 디지털 기기의 활용 능력을 기른다.","실과","지속가능한 기술과 융합",[[5,"2","5. 건설 기술과 디지털 기술 › 디지털 기술을 알아볼까요"]],["폰프리 스쿨"]],["[6실04-03]","제작한 발표 자료를 사이버 공간에 공유하고, 건전한 정보기기의 활용을 실천한다.","실과","지속가능한 기술과 융합",[[5,"2","5. 건설 기술과 디지털 기술 › 디지털 기술을 알아볼까요"]],[]],["[6실04-04]","로봇의 개념과 구조를 이해하고, 생활 속 로봇 기능을 체험하여 로봇의 중요성을 인식한다.","실과","지속가능한 기술과 융합",[[6,"2","7. 로봇과 융합 기술"]],[]],["[6실04-05]","로봇의 종류와 활용 사례를 통해 작동 원리를 이해하고, 로봇에 대한 관심과 흥미를 가진다.","실과","지속가능한 기술과 융합",[[6,"2","7. 로봇과 융합 기술"]],[]],["[6실04-06]","로봇의 융합 기술을 이해하고, 간단한 로봇을 만들어 코딩과 프로그램을 적용하여 동작 시키는 체험을 통해 융합 기술의 가치를 인식하다.","실과","지속가능한 기술과 융합",[[6,"2","7. 로봇과 융합 기술"]],[]],["[6실04-07]","생활 속 동식물 자원을 활용 목적에 따라 분류하고 이와 관련된 다양한 생명기술을 탐색한다.","실과","지속가능한 기술과 융합",[[5,"1","2. 생활 속 동물과 식물 › 동식물 자원을 활용 목적에 따라 분류해 볼까요"]],[]],["[6실04-08]","생활 속 동식물을 기르고 가꾸는 방법을 알고, 동식물을 기르고 가꾸는 체험을 통해 생태 존중감을 가진다.","실과","지속가능한 기술과 융합",[[5,"1","2. 생활 속 동물과 식물 › 동식물 자원을 활용 목적에 따라 분류해 볼까요"]],[]],["[6실04-09]","동식물 자원의 친환경 농업 사례를 통해 지속가능한 농업이 순환되고 있음을 인식하고 농업의 미래가치를 인식한다.","실과","지속가능한 기술과 융합",[[6,"1","2. 농업 활동과 미래"]],[]],["[6실04-10]","생활 속에서 농업활동과 관련된 모습을 분석하고 이에 따른 농업활동을 체험하여 농업에 대한 관심을 두고 이를 생활 속에서 실천한다.","실과","지속가능한 기술과 융합",[[6,"1","2. 농업 활동과 미래"]],[]],["[6실04-11]","농업과 농촌의 다원적인 역할과 가치를 이해하고 미래 농업과 관련된 다양한 직업 세계를 탐색한다.","실과","지속가능한 기술과 융합",[[6,"1","2. 농업 활동과 미래"]],[]],["[6실05-01]","컴퓨터를 활용한 생활 속 문제해결 사례를 탐색하고 일상생활 속 문제를 해결하기 위한 알고리즘을 다양한 방법으로 표현한다.","실과","디지털 사회와 인공지능",[[5,"2","7. 컴퓨터와 문제 해결"]],[]],["[6실05-02]","컴퓨터에게 명령하는 방법을 체험하고, 주어진 문제를 해결하는 프로그램을 작성한다.","실과","디지털 사회와 인공지능",[[5,"2","7. 컴퓨터와 문제 해결 › 문제 해결 절차를 알아볼까요"]],[]],["[6실05-03]","실생활의 문제를 해결하는 프로그램을 협력하여 작성하고, 산출물을 타인과 공유한다.","실과","디지털 사회와 인공지능",[[5,"2","7. 컴퓨터와 문제 해결 › 문제 해결 절차를 알아볼까요"]],[]],["[6실05-04]","디지털 데이터와 아날로그 데이터의 특징을 이해하고, 인공지능에 활용할 수 있는 데이터의 유형이나 형태를 탐색한다.","실과","디지털 사회와 인공지능",[[6,"2","5. 생활 속 인공지능"]],[]],["[6실05-05]","인공지능이 만들어지는 과정을 체험하고, 인공지능이 사회에 미치는 영향을 탐색한다.","실과","디지털 사회와 인공지능",[[6,"2","5. 생활 속 인공지능"]],[]],["[4체01-01]","운동과 체력의 의미를 이해하고 관계를 파악한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체01-02]","기본 체력운동의 방법과 절차를 익히며 자신의 수준에 맞는 운동을 시도한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체01-03]","운동과 건강의 의미를 이해하고 관계를 파악한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체01-04]","건강을 위한 바른 생활 습관을 이해하고 생활 속에서 규칙적으로 실천한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체01-05]","자신의 신체적 특징을 긍정적으로 인식하고 운동 계획을 세워 안전하게 활동한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체01-06]","운동과 건강한 생활 습관 형성에 관심을 갖고 적극적으로 실천한다.","체육","운동",[[3,"1","1. 운동"],[3,"1","1. 운동 › 체력에 알맞은 운동을 계획하고 실천해요"],[3,"2","1. 운동"],[4,"1","1. 운동"],[4,"2","1. 운동 (운동 생활 습관)"]],[]],["[4체02-01]","스포츠의 의미와 유형을 파악한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-02]","기본 움직임 기술의 의미와 종류를 이해하고 스포츠와의 관계를 파악한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-03]","움직임 요소에 따른 기본 움직임 기술의 수행 방법을 파악하고 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-04]","기본 움직임 기술을 연결한 복합적인 움직임 기술을 파악하고 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-05]","기술형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-06]","전략형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-07]","생태형 스포츠에 적합한 기본 움직임 기술을 파악하고 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-08]","움직임 기술 수행에 자신감을 갖고 적극적으로 시도한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-09]","게임 활동에 최선을 다하고 규칙을 지킨다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체02-10]","다양한 스포츠 환경에 개방적인 태도를 갖고 적극적이고 안전하게 스포츠 활동에 참여한다.","체육","스포츠",[[3,"1","2. 스포츠"],[3,"2","2. 스포츠"],[3,"2","2. 스포츠 › 도구로 몰아요"],[4,"1","2. 스포츠"],[4,"2","2. 스포츠"],[4,"2","2. 스포츠 › 2. 리듬 표현, 도구 표현"],[4,"2","2. 스포츠 › 인공 암벽을 잡고 올라요"],[4,"2","2. 스포츠 › 인라인스케이트로 균형 잡고 이동해요"]],[]],["[4체03-01]","표현 활동의 의미와 기본 움직임 기술과의 관계를 파악한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-02]","움직임 요소에 따른 기본 움직임 기술의 표현 방법을 파악하고 시도한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-03]","기본 움직임 기술을 활용하여 사물이나 자연을 모방하여 표현한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-04]","기본 움직임 기술을 활용하여 느낌이나 생각을 표현한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-05]","기본 움직임 기술을 리듬에 맞춰 표현한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-06]","기본 움직임 기술을 도구를 활용하여 표현한다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[4체03-07]","움직임의 심미적 표현에 대한 호기심과 감수성을 나타낸다.","체육","표현",[[3,"1","3. 표현"],[3,"2","3. 표현"],[4,"1","3. 표현"]],[]],["[6체01-01]","건강 체력과 운동 체력의 의미와 요소를 파악하고 다양한 운동 방법을 탐색한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],[]],["[6체01-02]","건강 체력과 운동 체력을 측정하고 자신의 체력 수준에 맞는 운동을 시도한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],[]],["[6체01-03]","성장 발달의 의미와 특성을 이해하고 운동과의 관계를 파악한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],[]],["[6체01-04]","운동 및 생활 속 위험 상황, 성장 발달을 저해하는 생활 방식의 문제점을 파악하고 예방 및 대처 방법을 익혀 안전하게 활동한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],[]],["[6체01-05]","체력 운동을 끈기 있게 규칙적으로 수행한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],[]],["[6체01-06]","성장과 발달 과정에서 나타나는 신체적, 정서적, 사회적 특성과 차이를 공감하고 위험 상황에 침착하게 대처한다.","체육","운동",[[5,"1","1. 운동 (건강 체력)"],[5,"2","1. 운동"],[6,"1","1. 운동 (협응성 등)"],[6,"2","1. 운동"]],["질문기반 탐구수업(2025) 질문 형성 기법"]],["[6체02-01]","기술형 스포츠의 의미와 유형을 파악한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-02]","기술형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-03]","기술형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-04]","전략형 스포츠의 의미와 유형을 파악한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-05]","전략형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-06]","전략형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-07]","생태형 스포츠의 의미와 유형을 파악한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-08]","생태형 스포츠 유형별로 기본 움직임 기술을 응용한 기본 기능을 파악하고 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-09]","생태형 스포츠 유형별 활동 방법을 파악하고 기본 전략을 게임 활동에서 수행한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-10]","스포츠 활동에 참여하며 목표를 달성하기 위한 의지를 실천하고 상대의 기술을 인정한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-11]","스포츠 활동에 참여하며 팀원과 협력하고 구성원을 배려한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체02-12]","스포츠 활동에 참여하며 환경을 아끼고 감사하는 태도를 실천한다.","체육","스포츠",[[5,"1","2. 스포츠 (기술형·전략형·생태형)"],[5,"2","2. 스포츠"],[5,"2","2. 스포츠 › 민속놀이를 해요"],[5,"2","2. 스포츠 › 자유형을 해요"],[5,"2","2. 스포츠 › 태권도 겨루기를 해요"],[6,"1","2. 스포츠 (전략형·플로어볼)"],[6,"2","2. 스포츠"],[6,"2","2. 스포츠 › 스케이팅 기록을 향상해요"],[6,"2","2. 스포츠 › 야구형 게임의 기본 전략을 알아요"],[6,"2","2. 스포츠 › 캠핑을 해요"]],[]],["[6체03-01]","표현 활동의 의미와 유형을 파악한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-02]","스포츠 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-03]","스포츠 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-04]","전통 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-05]","전통 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-06]","현대 표현에서 움직임 기술을 응용한 기본 동작을 파악하고 표현한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-07]","현대 표현의 기본 동작을 다양하게 구성하여 발표하고 감상한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[6체03-08]","다양한 표현 활동 유형을 수용하고, 움직임 표현의 아름다움을 추구한다.","체육","표현",[[5,"1","3. 표현 (창작체조)"],[5,"2","3. 표현"],[5,"2","3. 표현 › 라인댄스를 추어요"],[6,"1","3. 표현 (음악줄넘기)"],[6,"2","3. 표현"],[6,"2","3. 표현 › 스트리트댄스를 추어요"]],[]],["[4음01-01]","바른 자세와 주법을 익혀 노래 부르거나 악기로 연주한다.","음악","연주",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음01-02]","기초적인 음악 요소를 살려 노래 부르거나 악기로 연주하고 느낌을 이야기한다.","음악","연주",[[3,"1","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음01-03]","노래와 악기 연주에 어울리는 신체표현이나 놀이를 하며 음악을 즐긴다.","음악","연주",[[3,"1","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음01-04]","생활 속에서 음악을 경험하며 연주에 관심을 가지고 참여한다.","음악","연주",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음02-01]","음악을 듣고 기초적인 음악 요소를 탐색하며 반응한다.","음악","감상",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음02-02]","다양한 음악을 듣고 음악적 특징을 발견한다.","음악","감상",[[3,"1","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음02-03]","다양한 종류의 음악을 듣고 음악의 분위기를 묘사하거나 쓰임을 이야기한다.","음악","감상",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음02-04]","생활 속에서 음악을 들으며 느낌과 호기심을 갖고 즐긴다.","음악","감상",[[3,"1","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음02-05]","우리 지역의 음악 문화유산을 찾아 듣고 국악을 즐기는 태도를 갖는다.","음악","감상",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음03-01]","느낌과 상상을 즉흥적으로 표현하며 음악에 대한 흥미를 갖는다.","음악","창작",[[3,"1","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음03-02]","악곡의 일부를 바꾸어 표현하고 간단한 악보로 나타낸다.","음악","창작",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음03-03]","기초적인 음악 요소를 활용하여 소리나 음악으로 표현한다.","음악","창작",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4음03-04]","생활 주변의 소리나 장면을 모방하며 음악의 새로움을 즐기는 태도를 갖는다.","음악","창작",[[3,"2","전 단원 (제재곡별 연주·감상·창작)"],[4,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음01-01]","바른 주법과 표현 기법을 익혀 노래나 악기로 느낌을 담아 연주한다.","음악","연주",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음01-02]","음악 요소를 살려 노래나 악기로 발표하고 과정을 돌아본다.","음악","연주",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음01-03]","소리의 어울림을 생각하며 다양한 방법으로 함께 표현한다.","음악","연주",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음01-04]","간단한 형태의 연주를 준비하여 생활 속 음악 활동에 참여한다.","음악","연주",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음02-01]","음악을 듣고 음악의 요소를 감지하며 구별한다.","음악","감상",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음02-02]","다양한 문화권의 음악을 듣고 음악적 특징과 음악의 간단한 구성을 인식한다.","음악","감상",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음02-03]","다양한 종류의 음악을 듣고 음악의 배경과 활용을 설명한다.","음악","감상",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음02-04]","생활 속에서 음악을 찾아 들으며 아름다움을 느끼고 공감한다.","음악","감상",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음02-05]","우리나라 음악 문화유산을 찾아 듣고 국악의 가치를 인식한다.","음악","감상",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음03-01]","느낌과 아이디어를 떠올려 여러 매체나 방법으로 자신감 있게 표현한다.","음악","창작",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음03-02]","기초적인 기보를 활용하여 간단한 조건에 따라 악곡의 일부를 바꾼다.","음악","창작",[[5,"1","전 단원 (제재곡별 연주·감상·창작)"],[6,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음03-03]","음악의 요소를 활용하여 간단한 음악을 만든다.","음악","창작",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"1","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[6음03-04]","생활 주변 상황이나 이야기를 활용하여 음악을 만들며 열린 태도를 갖는다.","음악","창작",[[5,"2","전 단원 (제재곡별 연주·감상·창작)"],[6,"2","전 단원 (제재곡별 연주·감상·창작)"]],[]],["[4미01-01]","자연물과 인공물을 탐색하는 데 다양한 감각을 활용할 수 있다.","미술","미적 체험",[[3,"1","5. 감각 탐험대"],[4,"1","5. 비를 느껴요"]],[]],["[4미01-02]","주변 대상을 체험하며 떠오른 느낌과 생각을 다양한 방법으로 나타낼 수 있다.","미술","미적 체험",[[3,"1","6. 보이는 대로"],[4,"1","3. 느낌이 보이게"]],[]],["[4미01-03]","미적 탐색에 호기심을 갖고 참여하며 자신의 감각으로 대상의 특징을 이해할 수 있다.","미술","미적 체험",[[3,"1","5. 감각 탐험대"],[4,"1","7. 모두가 주인공"]],[]],["[4미01-04]","생활 속에서 활용되는 미술에 관심을 가지고 미술의 특징과 역할을 발견할 수 있다.","미술","미적 체험",[[3,"1","1. 어디서 어떻게 만날까"],[4,"1","1. 이렇게 멋진"]],[]],["[4미02-01]","관찰과 상상으로 아이디어를 떠올려 표현 주제를 구체화할 수 있다.","미술","표현",[[3,"2","10. 상상을 조물조물"],[4,"2","12. 열려라 상상"]],[]],["[4미02-02]","기본적인 표현 재료와 용구의 특성을 이해하고 사용 방법을 익힐 수 있다.","미술","표현",[[3,"2","9. 맑고 투명하게"],[4,"1","2. 보고 또 보고"]],[]],["[4미02-03]","조형 요소의 특징을 자유롭게 탐색하며 주제 표현에 알맞게 활용할 수 있다.","미술","표현",[[3,"1","2. 아롱다롱 다채롭게"],[4,"1","5. 비를 느껴요"]],[]],["[4미02-04]","표현 의도를 가지고 작품을 제작하며 자기 작품을 소중히 여길 수 있다.","미술","표현",[[3,"1","6. 보이는 대로"],[4,"1","5. 비를 느껴요"]],[]],["[4미02-05]","미술과 타 교과를 관련지어 주제를 표현하는데 흥미를 가질 수 있다.","미술","표현",[[3,"2","여러 단원 공통"],[4,"2","여러 단원 공통"]],[]],["[4미03-01]","미술 작품을 자세히 보고 작품과 미술가에 관해 질문할 수 있다.","미술","감상",[[3,"2","13. 질문이 예술"],[4,"1","1. 이렇게 멋진"]],[]],["[4미03-02]","미술 작품의 특징과 작품에 관한 자신의 느낌과 생각을 설명할 수 있다.","미술","감상",[[3,"1","4. 우리가 지켜 줄게"],[4,"1","3. 느낌이 보이게"]],["웹진 6호 사례5 (재구성)"]],["[4미03-03]","미술 문화에 관심을 가지고 전시 및 행사에 참여할 수 있다.","미술","감상",[[3,"1","7. 멋지다 미술관"],[4,"1","1. 이렇게 멋진"]],[]],["[4미03-04]","작품 감상에 흥미를 가지고 참여하며 작품에 대한 자신의 감상 관점을 존중할 수 있다.","미술","감상",[[3,"1","5. 감각 탐험대"],[4,"1","7. 모두가 주인공"]],[]],["[6미01-01]","다양한 감각과 매체를 활용하여 자신과 대상을 탐색할 수 있다.","미술","미적 체험",[[5,"1","4. 느낌 있는 생각"],[6,"2","11. 색다르게 찍어"]],[]],["[6미01-02]","자신이나 주변 환경에서 찾은 감각적 특징, 느낌, 생각 등을 관련지어 나타낼 수 있다.","미술","미적 체험",[[5,"1","4. 느낌 있는 생각"],[6,"2","9. 영감 툭, 생각 팡"]],[]],["[6미01-03]","주변 환경에 대한 민감한 태도로 대상과 상호 작용하며 새로운 의미를 발견할 수 있다.","미술","미적 체험",[[5,"2","9. 상상 그 이상"],[6,"1","4. 풍경에 풍덩"]],[]],["[6미01-04]","이미지가 나타내는 의미를 비판적으로 이해하고 느낌과 생각을 전달하는 데 활용할 수 있다.","미술","미적 체험",[[5,"2","8. 이미지 해독자"],[6,"1","2. 재미를 한 땀 한 땀"]],[]],["[6미02-01]","다양한 방법으로 아이디어를 연결하여 확장된 표현 주제로 발전시킬 수 있다.","미술","표현",[[5,"1","4. 느낌 있는 생각"],[6,"2","9. 영감 툭, 생각 팡"]],[]],["[6미02-02]","디지털 매체 등 다양한 표현 재료와 용구를 탐색하여 작품 제작에 활용할 수 있다.","미술","표현",[[5,"1","6. 언제 어디서나 예술"],[6,"1","7. 살아나는 입체"]],[]],["[6미02-03]","조형 요소의 어울림을 통해 조형 원리를 이해하고 주제 표현에 연결할 수 있다.","미술","표현",[[5,"1","3. 조형의 비밀"],[6,"2","9. 영감 툭, 생각 팡"]],[]],["[6미02-04]","주제 표현에 의지를 갖고 표현 과정을 돌아보며 작품을 발전시킬 수 있다.","미술","표현",[[5,"1","4. 느낌 있는 생각"],[6,"2","9. 영감 툭, 생각 팡"]],[]],["[6미02-05]","미술과 타 교과의 내용과 방법을 융합하는 활동을 자유롭게 시도할 수 있다.","미술","표현",[[5,"2","13. 미술가의 시간 여행"],[6,"1","여러 단원 공통"]],[]],["[6미03-01]","미술 작품을 작품이 만들어진 시대적, 지역적 배경 등과 연결하여 이해할 수 있다.","미술","감상",[[5,"2","13. 미술가의 시간 여행"],[6,"2","10. 지붕 없어도 미술관"]],[]],["[6미03-02]","미술 작품의 내용(소재, 주제 등)과 형식(재료와 용구, 표현 방법, 조형 요소와 원리 등) 을 분석하여 작품의 특징을 설명할 수 있다.","미술","감상",[[5,"1","3. 조형의 비밀"],[6,"1","7. 살아나는 입체"]],[]],["[6미03-03]","공동체의 미술 문화 활동에 관심을 가지고 참여하며 경험을 공유할 수 있다.","미술","감상",[[5,"2","13. 미술가의 시간 여행"],[6,"2","10. 지붕 없어도 미술관"]],["웹진 5호 사례3 공공미술"]],["[6미03-04]","다양한 방법을 활용하여 작품을 감상하며 작품에 관한 서로 다른 관점을 존중할 수 있다.","미술","감상",[[5,"2","13. 미술가의 시간 여행"],[6,"1","6. 내 마음이 보이니?"]],[]]];
+
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+let area=store.get("iv_area","all"), idx=0, phase=1, timerId=null, endAt=0, total=0, used=0, startAt=0, sample=null, audioCtx=null, wake=null;
+let mode=store.get("iv_mode","iv");
+
+/* ---------- 탭 ---------- */
+const AREAS=["동료 교사 지원","학생 지도","수업·컨설팅",NEW_AREA];
+function renderTabs(){
+  const nav=$("#tabs"); nav.innerHTML="";
+  const mk=(key,label,n,isNew)=>{const b=el("button","tab");b.type="button";b.dataset.area=key;b.textContent=label+(n?` (${n})`:"");
+    if(isNew){b.append(el("span","new","new"))}
+    b.setAttribute("aria-pressed",key===area?"true":"false");
+    b.onclick=()=>{area=key;store.set("iv_area",area);renderTabs();if(!(area==="all"||Q[idx].a===area))show(pool()[0].i);else show(idx)};
+    nav.append(b)};
+  mk("all","전체",Q.length);
+  AREAS.forEach(a=>mk(a,a,Q.filter(q=>q.a===a).length,a===NEW_AREA));
+}
+
+function pool(){return Q.map((q,i)=>({...q,i})).filter(q=>area==="all"||q.a===area)}
+function show(i){
+  idx=i; const q=Q[i];
+  $("#qArea").textContent=q.a; $("#qText").textContent=q.t;
+  const p=pool(); const pos=p.findIndex(x=>x.i===i)+1;
+  $("#qNo").textContent=`${pos} / ${p.length}`;
+  store.set("iv_last",i); resetFlow();
+}
+function draw(){const p=pool().filter(x=>x.i!==idx);const pick=p[Math.floor(Math.random()*p.length)]||pool()[0];show(pick.i)}
+function next(){const p=pool();const pos=p.findIndex(x=>x.i===idx);show(p[(pos+1)%p.length].i)}
+function fmt(s){const neg=s<0;s=Math.abs(Math.round(s));return (neg?"+":"")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function renderRefs(box,q){
+  box.innerHTML="";
+  (q.r||[]).forEach(([s,pg,txt])=>{const d=el("div","ref",txt);d.append(el("cite",null,`${SRC[s]} · ${pg}`));box.append(d)});
+}
+function setPhase(n){
+  phase=n;["#p1","#p2","#p3"].forEach((s,k)=>$(s).hidden=k+1!==n);
+  [1,2,3].forEach(k=>{$("#st"+k).className="step"+(k===n?" on":k<n?" done":"")});
+}
+function resetFlow(){
+  stop(); ["#m1","#m2","#m3","#m4","#transcript"].forEach(s=>$(s).value="");
+  $("#fb").hidden=true; $("#fb").innerHTML=""; $("#peekBox").hidden=true;
+  $("#peekRef").hidden=!(Q[idx].r&&Q[idx].r.length); $("#peekRef").textContent="근거 미리 보기";
+  $("#t1").textContent=fmt(+$("#prepSel").value); $("#t1").className="timer"; $("#b1 i").style.width="0";
+  $("#startPrep").textContent="구상 시작"; $("#startPrep").disabled=false; setPhase(1);
+}
+function stop(){if(timerId){clearInterval(timerId);timerId=null}}
+function beep(f=880,d=.18){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}catch(e){}}
+async function lock(){try{wake=await navigator.wakeLock?.request("screen")}catch(e){}}
+function unlock(){try{wake?.release()}catch(e){} wake=null}
+
+function run(tEl,bEl,secs,onEnd,overrun){
+  stop(); total=secs; startAt=Date.now(); endAt=startAt+secs*1000; let ended=false;
+  const tick=()=>{
+    const left=(endAt-Date.now())/1000;
+    if(bEl)$(bEl+" i").style.width=Math.max(0,Math.min(100,(1-left/secs)*100))+"%";
+    if(left>0){ $(tEl).textContent=fmt(Math.ceil(left)); $(tEl).classList.toggle("low",left<=15); $(tEl).classList.remove("over"); if(bEl)$(bEl).classList.remove("over"); }
+    else{
+      if(!ended){ended=true;beep(660,.35);onEnd&&onEnd()}
+      if(!overrun){stop();return}
+      $(tEl).textContent=fmt(left); $(tEl).classList.add("over"); if(bEl)$(bEl).classList.add("over");
+    }
+  };
+  tick(); timerId=setInterval(tick,250);
+}
+
+function startPrep(){beep(990,.12);lock();$("#startPrep").textContent="구상 중…";$("#startPrep").disabled=true;
+  run("#t1","#b1",+$("#prepSel").value,()=>{$("#startPrep").disabled=false;startAnswer()},false)}
+function startAnswer(){
+  stop(); setPhase(2);
+  const labels=["결론","근거","경험","확산"];
+  $("#cues").innerHTML="";
+  ["#m1","#m2","#m3","#m4"].forEach((s,k)=>{const d=el("div","cue");d.append(el("em",null,labels[k]),document.createTextNode($(s).value.trim()||"—"));$("#cues").append(d)});
+  beep(990,.12); lock();
+  $("#transcript").focus({preventScroll:true});
+  run("#t2","#b2",+$("#ansSel").value,null,true);
+}
+function endAnswer(){
+  used=(Date.now()-startAt)/1000; stop(); unlock(); beep(520,.15);
+  $("#t3").textContent=fmt(used); $("#t3").style.color=used>total?"var(--pen)":"";
+  $("#checks").innerHTML="";
+  CHECKS.forEach((c,k)=>{const l=el("label");const i=el("input");i.type="checkbox";i.id="ck"+k;if(k===5&&used<=total)i.checked=true;l.append(i,document.createTextNode(c));$("#checks").append(l)});
+  $("#kw").innerHTML=""; Q[idx].k.forEach(w=>$("#kw").append(el("span",null,w)));
+  renderRefs($("#refs"),Q[idx]); $("#refWrap").hidden=!(Q[idx].r&&Q[idx].r.length);
+  setPhase(3); saveHist();
+}
+function selfScore(){return [...document.querySelectorAll("#checks input")].filter(i=>i.checked).length}
+
+function saveHist(ai){
+  const h=store.get("iv_hist",[]);
+  const today=new Date().toISOString().slice(0,10);
+  if(ai!=null&&h.length&&h[0].q===idx){h[0].ai=ai;h[0].self=selfScore()}
+  else h.unshift({d:today,q:idx,s:Math.round(used),lim:total,self:null,ai:null});
+  store.set("iv_hist",h.slice(0,80)); renderHist();
+}
+function renderHist(){
+  const h=store.get("iv_hist",[]); const today=new Date().toISOString().slice(0,10);
+  const dh=store.get("ds_hist",[]);
+  $("#todayChip").textContent=mode==="iv"?`오늘 ${h.filter(x=>x.d===today).length}문항`:`오늘 설계 ${dh.filter(x=>x.d===today).length}건`;
+  $("#hlist").innerHTML=""; $("#hEmpty").hidden=h.length>0;
+  h.slice(0,30).forEach(x=>{
+    const li=el("li");
+    li.append(el("span","n",x.d.slice(5).replace("-","/")),el("span","q",Q[x.q]?.t||""),el("span","n",fmt(x.s)+(x.s>x.lim?" 초과":"")),el("span","n self",x.ai!=null?x.ai+"/10":"—"));
+    $("#hlist").append(li);
+  });
+  $("#dsHist").innerHTML=""; $("#dsEmpty").hidden=dh.length>0;
+  dh.slice(0,30).forEach(x=>{const li=el("li");li.append(el("span","n",x.d.slice(5).replace("-","/")),el("span","q",x.code+" "+x.text),el("span","n",x.where||""),el("span","n self",x.ai!=null?x.ai+"/10":"—"));$("#dsHist").append(li)});
+}
+
+function errMsg(e){return {not_granted:"Claude 사용이 허용되지 않았어요. 키워드와 근거 자료로 돌아보세요.",rate_limited:"요청이 많아요. 잠시 뒤에 다시 눌러 주세요.",cancelled:"채점을 멈췄어요."}[e?.code]||"채점을 받지 못했어요. 잠시 뒤에 다시 시도해 주세요."}
+async function grade(){
+  if(!sample)return;
+  const q=Q[idx];
+  const memo=["결론: "+$("#m1").value,"근거: "+$("#m2").value,"경험: "+$("#m3").value,"확산: "+$("#m4").value].join("\n");
+  const said=$("#transcript").value.trim();
+  const refs=(q.r||[]).map(([s,pg,t])=>`- (${SRC[s]} ${pg}) ${t}`).join("\n")||"(이 문항에 연결된 정책 자료 없음)";
+  const fb=$("#fb"); fb.hidden=false; fb.innerHTML='<p class="pen">채점하는 중…</p>';
+  $("#aiBtn").disabled=true;
+  const prompt=`당신은 경기도 초등 수석교사 선발 2차 심층면접의 엄격하지만 따뜻한 심사위원입니다.
+응시자는 경력 25년의 초등 교사입니다. 아래 답변을 10점 만점으로 채점하세요.
+
+채점 기준(각 2점): ① 결론이 첫 문장에 있고 "~하겠습니다"로 분명함 ② 원칙·교육과정·법령·정책 근거가 맞고 정확함(학교폭력·아동학대·생활지도 등 법적 절차가 필요한 문항에서 빠지면 크게 감점). 아래 [경기도교육청 정책 자료 요점]의 개념(핵심 질문·탐구 질문, 징검다리평가·전이, 준비–탐구–정리–실천 등)을 정확히 쓰면 이 항목에 반영 ③ 응시자 본인의 구체적 경험이 있음 ④ 실천이 '누가·언제·무엇을'로 구체적이고 수석교사로서 동료·학교로 확산함 ⑤ 질문이 묻는 것에 정확히 답했고 2분 분량(약 500~700자)에 맞음.
+답변 시간: ${Math.round(used)}초 / 제한 ${total}초.
+
+[문항] ${q.t}
+[참고 키워드] ${q.k.join(", ")}
+[경기도교육청 정책 자료 요점]
+${refs}
+[구상 메모]
+${memo}
+[구술 답변 받아쓰기]
+${said||"(받아쓰기 없음. 구상 메모만으로 채점하고, 그 사실을 good 또는 fixes에 짧게 언급)"}
+
+JSON만 출력하세요:
+{"score": 0~10 정수, "good": "잘한 점 1문장", "fixes": ["고칠 점 1문장", "고칠 점 1문장"], "better": "응시자 답을 살려 고친 2분 구술 답변. 4~6문장, 말하는 문체, 결론은 '~하겠습니다'. 정책 자료 요점이 있으면 그중 하나를 자연스럽게 근거로 넣기. 경험이 없으면 [내 경험: ○○] 자리표시를 넣기"}`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"default"});
+    const sc=Math.max(0,Math.min(10,parseInt(r.score)||0));
+    fb.innerHTML="";
+    const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
+    fb.append(el("div","score",sc+" / 10"),el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","고친 답 (소리 내어 2번 읽기)"),el("p","better",r.better||""));
+    saveHist(sc);
+  }catch(e){
+    fb.innerHTML=""; fb.append(el("p",null,errMsg(e)));
+    if(e?.code==="not_granted")$("#aiRow").hidden=true;
+  }finally{$("#aiBtn").disabled=false}
+}
+
+/* ---------- 수업 설계 연습 ---------- */
+let dsIdx=null, dsTimerId=null;
+const DS_F=["#d1","#d2","#d3","#d4","#d5","#d6","#d7","#d8","#d9","#d10"];
+const DS_L=["핵심 문장","핵심 질문","탐구 질문(사실적)","탐구 질문(개념적)","탐구 질문(논쟁적)","준비하기","탐구하기","정리하기","실천하기","평가"];
+function dsPool(){
+  const g=$("#fGrade").value, s=$("#fSubj").value, rf=$("#fRef").checked;
+  return STD.map((x,i)=>i).filter(i=>{const x=STD[i];return (!g||x[4].some(p=>String(p[0])===g))&&(!s||x[2]===s)&&(!rf||x[5].length)});
+}
+function where(x){const g=$("#fGrade").value;return x[4].filter(p=>!g||String(p[0])===g).map(p=>`${p[0]}학년 ${p[1]}학기 ${p[2]}`)}
+function dsShow(i){
+  dsIdx=i; const x=STD[i]; store.set("ds_last",i);
+  $("#dsArea").textContent=`${x[2]} · ${x[3]}`;
+  const p=dsPool(); $("#dsNo").textContent=p.length?`${p.indexOf(i)+1} / ${p.length}`:"";
+  const t=$("#dsText"); t.textContent=""; t.append(el("span","std-code",x[0]),document.createTextNode(x[1]));
+  const pl=$("#dsPlace"); pl.textContent=""; pl.append(el("b",null,"우리 학교 배치 "),document.createTextNode(where(x).join(" / ")));
+  const c=$("#dsRefs"); c.innerHTML=""; x[5].forEach(r=>c.append(el("span","chip","★ "+r)));
+  $("#dsFb").hidden=true; $("#dsFb").innerHTML="";
+}
+function dsDraw(){const p=dsPool();if(!p.length){$("#dsText").textContent="조건에 맞는 성취기준이 없어요. 필터를 바꿔 보세요.";$("#dsPlace").textContent="";$("#dsRefs").innerHTML="";$("#dsNo").textContent="";dsIdx=null;return}
+  const c=p.filter(i=>i!==dsIdx);dsShow((c.length?c:p)[Math.floor(Math.random()*(c.length||p.length))])}
+function dsTimerReset(){if(dsTimerId){clearInterval(dsTimerId);dsTimerId=null}const s=+$("#dsTime").value;$("#dsTimer").textContent=s?fmt(s):"—";$("#dsTimer").className="timer";$("#dsTimer").style.fontSize="1.6rem";$("#dsStart").disabled=!s;$("#dsStart").textContent="타이머 시작"}
+function dsStart(){const s=+$("#dsTime").value;if(!s)return;const end=Date.now()+s*1000;beep(990,.12);$("#dsStart").textContent="진행 중";$("#dsStart").disabled=true;
+  dsTimerId=setInterval(()=>{const left=(end-Date.now())/1000;$("#dsTimer").textContent=fmt(left>0?Math.ceil(left):left);$("#dsTimer").classList.toggle("low",left>0&&left<=60);$("#dsTimer").classList.toggle("over",left<=0);if(left<=0&&left>-0.3)beep(660,.35)},250)}
+async function dsGrade(){
+  if(!sample||dsIdx==null)return;
+  const x=STD[dsIdx];
+  const plan=DS_F.map((s,k)=>`${DS_L[k]}: ${$(s).value.trim()||"(비어 있음)"}`).join("\n");
+  const fb=$("#dsFb"); fb.hidden=false; fb.innerHTML='<p class="pen">설계를 읽는 중…</p>'; $("#dsAi").disabled=true;
+  const prompt=`당신은 경기도 초등 수석교사 선발 심사위원이자 수업 컨설턴트입니다. 응시자(경력 25년 초등 교사)가 아래 성취기준으로 짠 단원 설계 초안을 10점 만점으로 평가하세요.
+
+기준(각 2점): ① 핵심 문장이 성취기준·교과 핵심 아이디어를 학급 맥락의 일반화로 재진술했는가 ② 핵심 질문이 핵심 문장을 풀어내는 '큰 물음'이고 탐구 질문이 사실적→개념적→논쟁적으로 이어지는가 ③ 경기도형 질문기반 탐구수업 4단계(준비–탐구–정리–실천)가 보이고 정리하기에서 학생이 일반화 문장을 만드는가 ④ 실천하기에 전이 질문·성찰, 학생 질문을 받는 장치가 있는가 ⑤ 평가가 성취기준과 정렬되고 징검다리평가·전이 평가가 단원 흐름 안에 있는가. 학년 발달 수준에 맞지 않으면 감점.
+
+[성취기준] ${x[0]} ${x[1]}
+[교과·영역] ${x[2]} · ${x[3]}
+[학교 배치] ${x[4].map(p=>`${p[0]}학년 ${p[1]}학기 ${p[2]}`).join(" / ")}
+[설계 초안]
+${plan}
+
+JSON만 출력하세요:
+{"score": 0~10 정수, "good": "잘한 점 1문장", "fixes": ["고칠 점 1문장", "고칠 점 1문장", "고칠 점 1문장"], "revised": {"핵심 문장":"…","핵심 질문":"…","탐구 질문":["사실적 …","개념적 …","논쟁적 …"],"흐름":"준비 → 탐구 → 정리 → 실천을 한두 문장으로","평가":"평가요소 · 성취수준 한 줄 · 평가방법"}}
+빈칸이 많으면 점수를 낮추되 revised는 성취기준에 맞게 완성해서 예시로 주세요.`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"default"});
+    const sc=Math.max(0,Math.min(10,parseInt(r.score)||0));
+    fb.innerHTML="";
+    const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
+    const rv=r.revised||{}; const lines=[];
+    if(rv["핵심 문장"])lines.push("핵심 문장 — "+rv["핵심 문장"]);
+    if(rv["핵심 질문"])lines.push("핵심 질문 — "+rv["핵심 질문"]);
+    (rv["탐구 질문"]||[]).forEach(t=>lines.push("탐구 질문 — "+t));
+    if(rv["흐름"])lines.push("흐름 — "+rv["흐름"]);
+    if(rv["평가"])lines.push("평가 — "+rv["평가"]);
+    fb.append(el("div","score",sc+" / 10"),el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","다듬은 설계 예시"),el("p","better",lines.join("\n")));
+    const h=store.get("ds_hist",[]); h.unshift({d:new Date().toISOString().slice(0,10),code:x[0],text:x[1],where:x[4].map(p=>p[0]+"-"+p[1]).join(","),ai:sc});
+    store.set("ds_hist",h.slice(0,60)); renderHist();
+  }catch(e){fb.innerHTML="";fb.append(el("p",null,errMsg(e)));if(e?.code==="not_granted")$("#dsAi").hidden=true}
+  finally{$("#dsAi").disabled=false}
+}
+
+/* ---------- 모드 ---------- */
+function setMode(m){
+  mode=m; store.set("iv_mode",m);
+  $("#ivView").hidden=m!=="iv"; $("#dsView").hidden=m!=="ds";
+  $("#modeIv").setAttribute("aria-pressed",m==="iv"); $("#modeDs").setAttribute("aria-pressed",m==="ds");
+  $("#subLine").textContent=m==="iv"?"문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인":"우리 학교에 배치된 성취기준으로 핵심 질문·탐구 질문·4단계를 설계하고 피드백 받기";
+  if(m==="iv")stop(); renderHist();
+}
+
+/* ---------- 연결 ---------- */
+renderTabs();
+$("#drawBtn").onclick=draw; $("#nextBtn").onclick=next;
+$("#startPrep").onclick=startPrep; $("#skipPrep").onclick=()=>{$("#startPrep").disabled=false;startAnswer()};
+$("#peekRef").onclick=()=>{const b=$("#peekBox");b.hidden=!b.hidden;if(!b.hidden)renderRefs(b,Q[idx]);$("#peekRef").textContent=b.hidden?"근거 미리 보기":"근거 접기"};
+$("#stopAns").onclick=endAnswer;
+$("#retryBtn").onclick=()=>show(idx); $("#newBtn").onclick=draw;
+$("#prepSel").onchange=()=>{if(phase===1&&!timerId)$("#t1").textContent=fmt(+$("#prepSel").value)};
+$("#aiBtn").onclick=grade;
+$("#modeIv").onclick=()=>setMode("iv"); $("#modeDs").onclick=()=>setMode("ds");
+[...new Set(STD.map(x=>x[2]))].forEach(s=>{const o=el("option",null,s);o.value=s;$("#fSubj").append(o)});
+["#fGrade","#fSubj","#fRef"].forEach(s=>$(s).onchange=dsDraw);
+$("#dsDraw").onclick=dsDraw; $("#dsTime").onchange=dsTimerReset; $("#dsStart").onclick=dsStart;
+$("#dsAi").onclick=dsGrade;
+$("#dsClear").onclick=()=>{DS_F.forEach(s=>$(s).value="");$("#dsFb").hidden=true};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&timerId&&!wake)lock()});
+
+if(!AREAS.includes(area)&&area!=="all")area="all";
+const last=store.get("iv_last",3); idx=(Q[last]&&(area==="all"||Q[last].a===area))?last:pool()[0].i;
+show(idx);
+const dl=store.get("ds_last",null); if(dl!=null&&STD[dl])dsShow(dl); else dsDraw();
+dsTimerReset(); setMode(mode==="ds"?"ds":"iv");
+(async()=>{try{sample=await window.claude?.use?.("sample")}catch(e){sample=null}
+  if(sample){$("#aiRow").hidden=false;$("#dsAi").hidden=false}else{$("#dsNote").textContent="AI 피드백을 쓸 수 없는 환경이에요. 점검표로 스스로 확인해 보세요."}})();
+</script>

@@ -1,0 +1,626 @@
+<title>수석교사 심층면접 연습실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Nanum+Pen+Script&display=swap">
+<style>
+/* Layout: one exam-desk column. 모드 전환(심층면접 | 수업 설계) → 문제 카드 → 단계 패널. 근거 자료는 돌아보기 단계에서 원고 메모처럼 붙는다. */
+:root{
+  --paper:#F5F6F2; --card:#FFFFFF; --ink:#1D2730; --muted:#5E6A72; --line:#D9DDD6;
+  --pen:#C4372C; --pen-soft:#F7E3E0; --sage:#2E6B62; --sage-soft:#E1EEEA; --warn:#B7791F; --clip:#FFF6DC;
+  --f-q:"Gowun Batang","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+  --f-pen:"Nanum Pen Script","Gowun Batang",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#161B1F; --card:#1F262B; --ink:#E9ECE8; --muted:#9CA8AE; --line:#334047;
+  --pen:#F07A6E; --pen-soft:#3A2422; --sage:#6FC0B2; --sage-soft:#1E3330; --warn:#E3AE5A; --clip:#2E2A1E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#161B1F; --card:#1F262B; --ink:#E9ECE8; --muted:#9CA8AE; --line:#334047;
+  --pen:#F07A6E; --pen-soft:#3A2422; --sage:#6FC0B2; --sage-soft:#1E3330; --warn:#E3AE5A; --clip:#2E2A1E; color-scheme:dark}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:800px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+h1{font-family:var(--f-q);font-size:1.55rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.86rem;margin:2px 0 0}
+.score-chip{font-family:var(--f-num);font-size:.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.modes{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;align-self:flex-start;background:var(--card)}
+.modes button{font:inherit;font-weight:600;font-size:.9rem;border:0;background:transparent;color:var(--muted);padding:8px 18px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{font:inherit;font-size:.86rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab .new{font-family:var(--f-pen);color:var(--pen);font-size:1.05rem;margin-left:4px}
+.tab[aria-pressed="true"] .new{color:var(--paper)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.qmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.area{font-size:.74rem;letter-spacing:.06em;font-weight:600;color:var(--sage);background:var(--sage-soft);padding:2px 9px;border-radius:3px}
+.qno{font-family:var(--f-num);font-size:.78rem;color:var(--muted)}
+.qtext{font-family:var(--f-q);font-size:1.22rem;line-height:1.65;margin:0;text-wrap:pretty}
+.qactions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font-size:.9rem;font-weight:600;border-radius:5px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.primary{background:var(--sage);border-color:var(--sage);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#0F1A18}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0F1A18}}
+.btn.pen{background:var(--pen);border-color:var(--pen);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.step{padding:10px 12px;font-size:.84rem;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;min-width:0}
+.step:last-child{border-right:0}
+.step b{font-family:var(--f-num);font-weight:600}
+.step.on{color:var(--ink);background:var(--sage-soft);font-weight:600}
+.step.done{color:var(--sage)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.timer-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.timer{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:3.2rem;font-weight:600;line-height:1;letter-spacing:-.02em}
+.timer.low{color:var(--warn)} .timer.over{color:var(--pen)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--sage);width:0;transition:width .25s linear}
+.bar.over>i{background:var(--pen)}
+.settings{display:flex;flex-wrap:wrap;gap:14px;font-size:.84rem;color:var(--muted);align-items:center}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+.memo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.memo label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted);min-width:0}
+.memo label span{font-weight:400}
+.memo .full{grid-column:1/-1}
+textarea,input[type=text]{font:inherit;font-size:.92rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;resize:vertical;width:100%;box-sizing:border-box}
+.cues{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cue{border:1px dashed var(--line);border-radius:4px;padding:8px 10px;font-size:.84rem;min-width:0;overflow-wrap:anywhere}
+.cue em{display:block;font-style:normal;font-size:.72rem;letter-spacing:.05em;color:var(--sage);font-weight:600}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 5px;background:var(--paper)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+.checks label{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;cursor:pointer}
+.checks input{margin-top:5px;accent-color:var(--sage)}
+.kw{display:flex;flex-wrap:wrap;gap:6px}
+.kw span{font-size:.82rem;border:1px solid var(--line);border-radius:3px;padding:2px 8px;background:var(--paper)}
+.sect-h{font-size:.78rem;letter-spacing:.06em;font-weight:700;color:var(--muted);margin:0}
+/* 근거 카드: 원고에 붙인 포스트잇 */
+.refs{display:flex;flex-direction:column;gap:8px}
+.ref{background:var(--clip);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:0 4px 4px 0;padding:9px 12px;font-size:.88rem;line-height:1.55}
+.ref cite{display:block;font-style:normal;font-family:var(--f-num);font-size:.72rem;color:var(--muted);margin-top:3px}
+.fb{border-left:3px solid var(--pen);background:var(--pen-soft);padding:14px 16px;border-radius:0 4px 4px 0;display:flex;flex-direction:column;gap:8px}
+.fb .score{font-family:var(--f-pen);font-size:2.3rem;line-height:1;color:var(--pen)}
+.fb p,.fb li{font-size:.92rem;margin:0}
+.fb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.fb .better{font-family:var(--f-q);font-size:.98rem;line-height:1.75;white-space:pre-wrap}
+.pen{font-family:var(--f-pen);color:var(--pen);font-size:1.25rem;line-height:1.25}
+.history{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.history summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.hlist{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column}
+.hlist li{display:grid;grid-template-columns:70px 1fr 64px 60px;gap:10px;font-size:.84rem;padding:7px 0;border-top:1px solid var(--line);align-items:baseline}
+.hlist .n{font-family:var(--f-num);font-variant-numeric:tabular-nums;color:var(--muted);font-size:.78rem}
+.hlist .q{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--muted);font-size:.86rem;margin:10px 0 0}
+/* 수업 설계 모드 */
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;font-size:.86rem;color:var(--muted)}
+.filters label{display:flex;gap:6px;align-items:center}
+.std-code{font-family:var(--f-num);font-weight:600;color:var(--sage);margin-right:6px}
+.place{font-size:.88rem;color:var(--muted);margin:0}
+.place b{color:var(--ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border:1px solid var(--warn);color:var(--warn);border-radius:3px;padding:1px 7px}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ladder label{border-top:3px solid var(--sage);padding-top:6px}
+@media (max-width:560px){
+  .memo,.checks{grid-template-columns:1fr}
+  .cues,.ladder{grid-template-columns:1fr 1fr}
+  .timer{font-size:2.6rem}
+  .step{font-size:.76rem;padding:8px}
+  .hlist li{grid-template-columns:56px 1fr 52px}
+  .hlist li .self{display:none}
+}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>심층면접 연습실</h1>
+      <p class="sub" id="subLine">문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인</p>
+    </div>
+    <span class="score-chip" id="todayChip">오늘 0문항</span>
+  </header>
+
+  <div class="modes" role="group" aria-label="연습 종류">
+    <button type="button" id="modeIv" aria-pressed="true">심층면접</button>
+    <button type="button" id="modeDs" aria-pressed="false">수업 설계 연습</button>
+  </div>
+
+  <!-- ===== 심층면접 ===== -->
+  <div id="ivView" style="display:contents">
+  <nav class="tabs" id="tabs" aria-label="평가 영역"></nav>
+
+  <section class="qcard" aria-live="polite">
+    <div class="qmeta"><span class="area" id="qArea"></span><span class="qno" id="qNo"></span></div>
+    <p class="qtext" id="qText"></p>
+    <div class="qactions">
+      <button class="btn" id="drawBtn">다른 문항 뽑기</button>
+      <button class="btn" id="nextBtn">다음 문항 순서대로</button>
+    </div>
+  </section>
+
+  <div class="steps" aria-hidden="true">
+    <div class="step" id="st1"><b>1</b> 구상 메모</div>
+    <div class="step" id="st2"><b>2</b> 구술 답변</div>
+    <div class="step" id="st3"><b>3</b> 돌아보기</div>
+  </div>
+
+  <section class="panel" id="p1">
+    <div class="timer-row">
+      <div class="timer" id="t1">1:00</div>
+      <div class="settings">
+        <label>구상 시간 <select id="prepSel"><option value="30">30초</option><option value="60" selected>1분</option><option value="90">1분 30초</option><option value="120">2분</option></select></label>
+        <label>답변 시간 <select id="ansSel"><option value="90">1분 30초</option><option value="120" selected>2분</option><option value="150">2분 30초</option></select></label>
+      </div>
+    </div>
+    <div class="bar" id="b1"><i></i></div>
+    <div class="memo">
+      <label for="m1">결론 1문장 <span>"~하겠습니다"로</span><textarea id="m1" rows="2" placeholder="예) 학생 배움을 기준으로 두 선생님의 합의안을 만들겠습니다."></textarea></label>
+      <label for="m2">원칙·근거 <span>교육과정, 법령, 정책 자료</span><textarea id="m2" rows="2" placeholder="예) 2025 질문기반 탐구수업: 준비–탐구–정리–실천"></textarea></label>
+      <label for="m3">내 경험 <span>실제로 해 본 일 1개</span><textarea id="m3" rows="2" placeholder="예) 학년부장 때 두 방식을 한 단원씩 시범 운영"></textarea></label>
+      <label for="m4">수석교사로서 확산 <span>누가·언제·무엇을</span><textarea id="m4" rows="2" placeholder="예) 협의회 진행 → 시범 운영 → 성찰 → 학년 교육과정 반영"></textarea></label>
+    </div>
+    <div class="qactions">
+      <button class="btn primary" id="startPrep">구상 시작</button>
+      <button class="btn" id="skipPrep">바로 답변하기</button>
+      <button class="btn" id="peekRef">근거 미리 보기</button>
+    </div>
+    <div class="refs" id="peekBox" hidden></div>
+  </section>
+
+  <section class="panel" id="p2" hidden>
+    <div class="timer-row">
+      <div class="timer" id="t2">2:00</div>
+      <div class="qactions"><button class="btn pen" id="stopAns">답변 끝</button></div>
+    </div>
+    <div class="bar" id="b2"><i></i></div>
+    <div class="cues" id="cues"></div>
+    <label for="transcript" class="sect-h">말한 내용 받아쓰기 (선택, AI 채점에 사용)</label>
+    <textarea id="transcript" rows="6" placeholder="소리 내어 말하면서 음성 입력을 켜 두세요. 받아쓴 글이 여기에 쌓입니다."></textarea>
+    <p class="hint"><strong style="color:var(--pen)">답변이 시작되면 커서가 자동으로 이 칸에 들어갑니다.</strong> 바로 <kbd>Win</kbd> + <kbd>H</kbd>(휴대폰은 키보드 마이크 버튼)를 누르고 말하세요. 한 번 켜 두면 2분 동안 계속 받아씁니다.</p>
+  </section>
+
+  <section class="panel" id="p3" hidden>
+    <div class="timer-row">
+      <div>
+        <p class="sect-h">답변 시간</p>
+        <div class="timer" id="t3" style="font-size:2.2rem">0:00</div>
+      </div>
+      <div class="qactions">
+        <button class="btn" id="retryBtn">같은 문항 다시</button>
+        <button class="btn primary" id="newBtn">새 문항</button>
+      </div>
+    </div>
+    <div>
+      <p class="sect-h" style="margin-bottom:8px">스스로 점검</p>
+      <div class="checks" id="checks"></div>
+    </div>
+    <div>
+      <p class="sect-h" style="margin-bottom:8px">이 문항의 핵심 키워드</p>
+      <div class="kw" id="kw"></div>
+    </div>
+    <div id="refWrap" hidden>
+      <p class="sect-h" style="margin-bottom:8px">답변에 쓸 근거 자료</p>
+      <div class="refs" id="refs"></div>
+    </div>
+    <div class="qactions" id="aiRow" hidden>
+      <button class="btn pen" id="aiBtn">빨간펜 채점 받기</button>
+      <span class="hint" id="aiNote">받아쓴 내용(없으면 메모)으로 10점 만점 채점합니다.</span>
+    </div>
+    <div class="fb" id="fb" hidden></div>
+  </section>
+
+  <details class="history" id="histBox">
+    <summary>연습 기록</summary>
+    <ul class="hlist" id="hlist"></ul>
+    <p class="empty" id="hEmpty">아직 기록이 없어요. 첫 문항을 끝내면 여기에 쌓입니다.</p>
+  </details>
+  </div>
+
+  <!-- ===== 수업 설계 연습 ===== -->
+  <div id="dsView" style="display:contents" hidden>
+  <section class="qcard">
+    <div class="filters">
+      <label>학년 <select id="fGrade"><option value="">전체</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+      <label>교과 <select id="fSubj"><option value="">전체</option></select></label>
+      <label><input type="checkbox" id="fRef"> 근거 사례 있는 성취기준만</label>
+    </div>
+    <div class="qmeta"><span class="area" id="dsArea"></span><span class="qno" id="dsNo"></span></div>
+    <p class="qtext" id="dsText"></p>
+    <p class="place" id="dsPlace"></p>
+    <div class="chips" id="dsRefs"></div>
+    <div class="qactions">
+      <button class="btn" id="dsDraw">다른 성취기준 뽑기</button>
+      <label class="settings">설계 시간 <select id="dsTime"><option value="0">제한 없음</option><option value="300">5분</option><option value="600" selected>10분</option><option value="900">15분</option></select></label>
+      <span class="timer" id="dsTimer" style="font-size:1.6rem">10:00</span>
+      <button class="btn primary" id="dsStart">타이머 시작</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="hint">2025 「질문기반 탐구수업」 3단계(핵심 아이디어 → 핵심 문장 → 핵심 질문 → 탐구 질문)와 경기도형 4단계(준비–탐구–정리–실천)로 한 단원을 설계합니다.</p>
+    <div class="memo">
+      <label class="full" for="d1">핵심 문장 <span>핵심 아이디어를 우리 반 맥락으로 재진술한 일반화</span><textarea id="d1" rows="2"></textarea></label>
+      <label class="full" for="d2">핵심 질문 <span>단원의 '큰 물음'</span><textarea id="d2" rows="2"></textarea></label>
+    </div>
+    <div class="memo" style="grid-template-columns:repeat(3,1fr)">
+      <label for="d3">탐구 질문 · 사실적<textarea id="d3" rows="3"></textarea></label>
+      <label for="d4">탐구 질문 · 개념적<textarea id="d4" rows="3"></textarea></label>
+      <label for="d5">탐구 질문 · 논쟁적<textarea id="d5" rows="3"></textarea></label>
+    </div>
+    <div class="ladder memo">
+      <label for="d6">준비하기<textarea id="d6" rows="3" placeholder="삶과 연결, 학생 질문 만들기"></textarea></label>
+      <label for="d7">탐구하기<textarea id="d7" rows="3" placeholder="조사·실험·토의"></textarea></label>
+      <label for="d8">정리하기<textarea id="d8" rows="3" placeholder="학생이 만드는 일반화 문장"></textarea></label>
+      <label for="d9">실천하기<textarea id="d9" rows="3" placeholder="전이 질문, 성찰"></textarea></label>
+    </div>
+    <div class="memo">
+      <label class="full" for="d10">평가 <span>징검다리평가와 전이 과제, 평가요소·방법</span><textarea id="d10" rows="2"></textarea></label>
+    </div>
+    <div class="qactions">
+      <button class="btn pen" id="dsAi" hidden>빨간펜 설계 피드백</button>
+      <button class="btn" id="dsClear">설계 지우기</button>
+      <span class="hint" id="dsNote"></span>
+    </div>
+    <div class="fb" id="dsFb" hidden></div>
+    <details>
+      <summary class="sect-h" style="cursor:pointer">설계 점검표 (2025 질문기반 탐구수업)</summary>
+      <ul class="hint" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
+        <li>핵심 아이디어를 우리 학급 맥락으로 재진술한 핵심 문장이 있는가</li>
+        <li>핵심 질문이 핵심 문장의 의미를 풀어내는 '큰 물음'인가</li>
+        <li>탐구 질문이 사실 → 개념 → 논쟁으로 이어지는가</li>
+        <li>정리하기에서 학생이 일반화 문장을 만드는가</li>
+        <li>실천하기에 전이 질문과 성찰(예전 생각–지금 생각)이 있는가</li>
+        <li>학생 질문을 받는 장치(하브루타, 질문 형성 기법, 꼬리잡기)가 있는가</li>
+        <li>징검다리평가와 전이 평가가 단원 흐름 안에 놓였는가</li>
+      </ul>
+    </details>
+  </section>
+
+  <details class="history">
+    <summary>설계 기록</summary>
+    <ul class="hlist" id="dsHist"></ul>
+    <p class="empty" id="dsEmpty">아직 기록이 없어요. 피드백을 받으면 여기에 쌓입니다.</p>
+  </details>
+  </div>
+</div>
+
+<script>
+/* 근거 자료 약칭: W6=깊이있는 수업 웹진 6호(2026.8.), W5=웹진 5호(2026.6.), Q25=2025 질문기반 탐구수업, PF=폰프리 스쿨 실천 안내서(2026) */
+const SRC={W6:"웹진 「깊수다」 6호(2026.8.)",W5:"웹진 「깊수다」 5호(2026.6.)",Q25:"2025 질문기반 탐구수업",PF:"폰프리 스쿨 실천 안내서(2026)"};
+const NEW_AREA="깊이있는 수업";
+const Q=[
+ // 동료 교사 지원
+ {a:"동료 교사 지원",t:"같은 학년의 경력 교사와 신규 교사가 학년 교육과정 운영 방식을 두고 갈등을 겪고 있습니다. 수석교사로서 어떻게 조정하겠습니까?",k:["학생 배움이라는 공통 기준","개별 경청","협의회 진행(공통점·차이점)","두 방식 시범 운영","성찰 후 반영"],
+  r:[["W5","p.6~11","단원 중심 통합 설계: '이 단원에서 학생이 무엇을 깊이 이해해야 하나'를 공통 출발점으로 두면 방식 논쟁이 배움 논의로 바뀐다."]]},
+ {a:"동료 교사 지원",t:"수업 컨설팅을 원하지 않는 동료 교사의 수업 전문성 신장을 어떻게 지원하겠습니까?",k:["자율성 존중","내 수업 먼저 공개","부담 없는 자료 나눔","관심 주제 먼저 묻기","작은 성공 경험"],
+  r:[["W5","p.18","컨설팅은 수업자의 의도·학생 특성을 충분히 듣는 대화에서 출발해 수업자가 가진 큰 그림을 함께 구조화한다(양평초 수석교사)."]]},
+ {a:"동료 교사 지원",t:"수석교사가 되면 경감된 수업시수(1/2)를 동료 교사 지원에 어떻게 활용하겠습니까?",k:["찾아가는 지원","신규·저경력 멘토링","요청형 컨설팅","공동 수업 설계","수업 나눔 주간"],
+  r:[["W6","p.52","수석교사가 학교 안 탐구공동체를 조직해 설계–실행–촬영–성찰을 함께하고, 이듬해 운영을 동료에게 넘겨 리더십을 나눈다(오마초 수석교사)."]]},
+ {a:"동료 교사 지원",t:"신규 교사가 수업 준비는 열심히 하지만 학급 경영에 어려움을 겪으며 \"교사가 맞지 않는 것 같다\"고 털어놓았습니다. 어떻게 지원하겠습니까?",k:["정서적 지지·경청","구체적 학급 경영 도구","정기 멘토링","교원 상담·치유 지원 연계","작은 성공 경험"]},
+ {a:"동료 교사 지원",t:"수업 공개를 부담스러워하며 거부하는 경력 교사가 있습니다. 어떻게 하겠습니까?",k:["부담의 이유 경청","부분 공개·짧은 공개","관찰 초점을 수업자가 선택","강점 중심 피드백","수석 수업 먼저 공개"],
+  r:[["W6","p.22","10년 넘게 자기 방식이 굳은 교사도 '내 수업을 바깥에서 보고 싶다'는 계기로 깊이있는 수업에 도전했다(안양덕현초 사례) → 관찰 초점을 수업자가 정하게 한다."]]},
+ {a:"동료 교사 지원",t:"학교의 전문적 학습공동체가 형식적으로 운영되고 있습니다. 수석교사로서 어떻게 활성화하겠습니까?",k:["교사가 고른 주제","실천-성찰 순환","학생 배움 자료로 대화","작은 성공 공유","리더십 나누기"],
+  r:[["W6","p.52","'질문하는 교사들', '토론하는 교사들'처럼 공동 관심사로 묶인 공동체가 해마다 수업 공개와 연구로 함께 성장했다."],["W5","p.6~11","공동체 주제로 '단원 하나를 함께 통합 설계'하면 실천–성찰 순환이 자연스럽게 생긴다."]]},
+ {a:"동료 교사 지원",t:"에듀테크 활용에 거부감이 있는 동료 교사들을 어떻게 지원하겠습니까?",k:["도구보다 수업 목적","쉬운 도구 하나부터","함께 설계·함께 수업","디지털 윤리·개인정보","실패해도 괜찮은 분위기"],
+  r:[["W5","p.60~65","AI 마음 거울(2학년): 엔트리 분류 모델을 사회정서학습의 공감 언어와 끊김 없이 연결 — 도구가 아니라 배움 목적이 중심(청솔초 수석교사 컨설팅)."]]},
+ {a:"동료 교사 지원",t:"동료 교사가 학부모 민원으로 크게 위축되어 수업에 자신감을 잃었습니다. 어떻게 돕겠습니까?",k:["정서적 지지","교권 보호 절차 안내","사실 기록","관리자·교권보호 기구 연계","수업 자신감 회복 지원"]},
+ {a:"동료 교사 지원",t:"수업 컨설팅 후 피드백에 마음이 상한 동료 교사와 관계가 서먹해졌습니다. 어떻게 하겠습니까?",k:["먼저 다가가 경청","내 피드백 방식 성찰","강점 기반 피드백","수업자 주도 컨설팅","관계 회복 후 재설계"],
+  r:[["W6","p.52","수석교사가 설계·문서는 도울 수 있어도 수업자의 마음의 부담은 덜어주지 못했다는 성찰 → 컨설팅은 함께 만들고 함께 실행하는 동반 과정."]]},
+ {a:"동료 교사 지원",t:"학년 교사들이 과정 중심 평가를 어려워합니다. 수석교사로서 어떻게 지원하겠습니까?",k:["성취기준-평가 정렬","채점 기준 공동 개발","피드백 방법","평가 사례 공유","학생 성장 기록"],
+  r:[["W5","p.9~10","배움 형성 지점마다 징검다리평가, 단원 끝에는 배운 것으로 판단·해결하는 전이 평가를 놓는다."],["W5","p.53","생산과 소비(4학년 사회): 평가요소 하나에 매우잘함~노력요함 4단계 성취수준을 진술한 '학습으로의 평가'."]]},
+ {a:"동료 교사 지원",t:"생성형 AI 활용 수업을 걱정하는 동료 교사들에게 어떻게 안내하겠습니까?",k:["교육 목적 우선","연령 제한·개인정보","교사용 도구로 먼저","비판적 활용 지도","실제 수업 사례"],
+  r:[["W6","p.76~81","내리숲초 AI 질문 도구: 학생 질문을 무시하지 않고 탐구 가능한 문장으로 다듬어 되돌려 줌, 교사 모드는 발문 세트와 성취기준 제시. 인공지능윤리교육 연구학교와 연계."]]},
+ {a:"동료 교사 지원",t:"수석교사에게 가장 필요한 역량 한 가지를 꼽고, 그 역량을 어떻게 발휘하겠습니까?",k:["역량 하나 명확히","그 이유","내 경험","구체적 실천 계획"],
+  r:[["W5","p.11","통합 설계의 중심은 교사의 교육과정 전문성 — 교사는 정해진 활동의 실행자가 아니라 설계자다."]]},
+ // 학생 지도
+ {a:"학생 지도",t:"쉬는 시간 사소한 다툼이 보호자의 학교폭력 신고 요구로 번지려 합니다. 담임교사로서 학생들의 관계 회복을 위해 어떻게 지도하겠습니까?",k:["신고 접수·학교장 보고","절차를 숨기지 않기","학교장 자체해결 요건","회복적 대화","보호자 개별 상담"]},
+ {a:"학생 지도",t:"수업 시간마다 활동을 거부하고 엎드려 있는 학생이 있습니다. 상담과 학습지도를 어떻게 하겠습니까?",k:["원인 파악(학습·정서·가정)","관계 형성","수준 맞춤 과제","작은 성공","보호자·Wee클래스 연계"],
+  r:[["W6","p.22","말수가 적고 위축된 학급에서는 '정서적 안정감 위의 탐구'(마음챙김, 갤러리 워크)로 자기 생각을 꺼내도 괜찮다는 감각부터 만든다."]]},
+ {a:"학생 지도",t:"초등학생의 진로 교육은 무엇을 중심으로 해야 한다고 생각하며, 교실에서 어떻게 실천하겠습니까?",k:["자기 이해","다양한 세계 탐색","교과 연계","강점 발견","진로 포트폴리오"],
+  r:[["W5","p.22~29","'작은 선택을 쌓아 만들어 가는 나다움'(3학년 도덕+사회 22차시): 나의 조각 카드 → 나의 연표 → 되고 싶은 나와 성실한 선택, 나다움 박물관 발표."]]},
+ {a:"학생 지도",t:"수업 중 교사에게 반복적으로 거친 말을 하며 수업을 방해하는 학생이 있습니다. 어떻게 지도하겠습니까?",k:["다른 학생의 학습권","학생생활지도 고시 절차","감정 아닌 행동에 대응","원인 상담","보호자 협력"]},
+ {a:"학생 지도",t:"학급 단체 대화방에서 한 학생을 따돌리는 정황을 발견했습니다. 어떻게 하겠습니까?",k:["피해 학생 보호 우선","증거 보존","신고·보고 절차","가해 학생 지도","디지털 시민교육"]},
+ {a:"학생 지도",t:"상담 중 학생이 \"사라지고 싶다\"는 말을 했습니다. 어떻게 대응하겠습니까?",k:["즉시 안전 확인","혼자 판단하지 않기","보호자·Wee클래스·전문기관 연계","비밀 보장의 한계 안내","지속 관찰"]},
+ {a:"학생 지도",t:"주의 집중이 어려워 수업 흐름을 자주 끊는 학생이 있습니다. 어떻게 지도하겠습니까?",k:["수업 구조화","자리·과제 길이 조정","즉각적 긍정 피드백","보호자 협력","전문가 협의"]},
+ {a:"학생 지도",t:"한국어가 서툰 다문화 가정 학생이 학습에서 소외되고 있습니다. 어떻게 지원하겠습니까?",k:["언어 지원(시각 자료·번역)","강점·문화 존중","협력 학습 짝","한국어 교육 연계","보호자 소통 방법"],
+  r:[["W5","p.47","마을 소식지(2학년): 글쓰기 중심 활동에서 소외되지 않도록 사전 조사 기간을 확보하고 사진·그림·짧은 문장 등 표현 방법을 열어 둠(가평초 수석교사 컨설팅)."]]},
+ {a:"학생 지도",t:"가정 방임이 의심되는 학생을 발견했습니다. 담임교사로서 어떻게 하겠습니까?",k:["아동학대 신고 의무자","관찰·기록","관리자 보고와 신고","학생 안전 우선","지속 지원"]},
+ {a:"학생 지도",t:"학급에 무리 짓기와 소외되는 학생이 생겼습니다. 어떻게 지도하겠습니까?",k:["관계 관찰","협력 구조 바꾸기","학급 회의","사회정서학습(SEL)","소외 학생 개별 지원"],
+  r:[["W6","p.22~23","'포용성' 개념 탐구(6학년 국어): 예·반례·특성으로 모둠별 정의 → 갤러리 워크로 정의 비교 → 내 삶의 포용성 사례 발표."]]},
+ {a:"학생 지도",t:"스마트폰·게임에 지나치게 빠진 학생을 어떻게 지도하겠습니까?",k:["자기 조절 지도","학급 약속","보호자 협력","대체 활동","전문기관 연계"],
+  r:[["PF","p.18~23","학생 주도 5단계: 스스로 생각하기 → 학급 의견 나누기 → 학생자치회 의견 모으기 → 교육공동체가 함께 정하기 → 실천하고 돌아보기."],["PF","p.27~31","'내려놓은 시간'을 독서·예술문화·스포츠(RAS)와 관계 활동으로 채운다."],["PF","p.34","약속 미이행 시 제재보다 이유 듣기와 성찰을 먼저 하는 교육적 지도."]]},
+ {a:"학생 지도",t:"회복적 생활교육을 학급에 정착시키기 위해 어떻게 하겠습니까?",k:["존중의 약속 함께 만들기","회복적 서클","갈등 해결 절차","교사의 언어","동료와 사례 나눔"],
+  r:[["W6","p.46~47","그림책 속 '해녀 수칙'에서 출발해 수칙의 뜻과 필요성을 탐구하고 우리 반 학생 수칙을 모둠 합의로 정함(4학년)."]]},
+ {a:"학생 지도",t:"기초학력이 부족한 학생을 어떻게 지도하겠습니까?",k:["진단","맞춤 지도","협력 수업·보조 인력","성장 확인과 칭찬","보호자 협력"],
+  r:[["W6","p.56","규칙 찾기(4학년 수학) 컨설팅: 학생마다 알아차리는 시점이 달라 단계적 실마리를 준비하고 표·그림 등 표현 방식을 열어 둠."]]},
+ // 수업·컨설팅
+ {a:"수업·컨설팅",t:"\"학생 참여가 낮다\"고 고민하는 교사의 수업을 관찰한 뒤, 사후 협의회에서 가장 먼저 무엇을 말하겠습니까?",k:["강점부터","수업자 의도 질문","관찰 증거로 말하기","수업자가 해법 찾기","다음 약속"],
+  r:[["W6","p.7","질문은 알던 생각과 어긋나는 사실·예상과 다른 결과를 만날 때 생긴다 → 참여가 낮다면 도입에 인지적 갈등 장면이 있었는지부터 함께 본다."]]},
+ {a:"수업·컨설팅",t:"좋은 수업이란 무엇이라고 생각하며, 그런 수업을 위해 어떻게 하고 있습니까?",k:["학생의 배움 중심","깊이 있는 학습","내 수업 사례","학교로 확산"],
+  r:[["W6","p.11","질문 없는 탐구는 시킨 과제가 되고, 탐구 없는 질문은 활동지 위의 물음표로 남는다(미사초 수석교사)."]]},
+ {a:"수업·컨설팅",t:"2022 개정 교육과정의 핵심을 수업에서 어떻게 구현하겠습니까?",k:["깊이 있는 학습","역량 함양","삶과 연계","디지털 기초소양","학생 주도성"],
+  r:[["W5","p.7~8","깊이있는 학습은 많은 내용을 빠르게 다루는 수업이 아니다. 핵심을 붙들고 생각·질문·설명·판단하며 삶과 연결해 전이하는 학습."]]},
+ {a:"수업·컨설팅",t:"디지털 도구를 활용한 수업을 컨설팅할 때 무엇을 중점으로 보겠습니까?",k:["목적과 도구의 정렬","학생 사고가 드러나는가","참여의 질","윤리·개인정보","대안 제시"],
+  r:[["W6","p.14~15","미디어 홍수(6학년 사회): 하이러닝으로 모둠별 사례를 주장–근거–더 필요한 정보로 분석, 디지털 도구가 학생 사고를 드러내는 데 쓰임."]]},
+ {a:"수업·컨설팅",t:"학교에서 수업 나눔 협의회를 어떻게 운영하겠습니까?",k:["수업자 중심","학생 배움 관찰","질문형 대화","강점과 제안","실천 약속"],
+  r:[["W5","p.18","컨설팅 순서: 교육과정 분석 → 단원 설계 → 차시 계획 → 본차시 구체화 → 자료 점검, 유사 사례 영상 공유."]]},
+ // 깊이있는 수업 (새 근거자료 기반)
+ {a:NEW_AREA,t:"학생이 만든 질문을 실제 수업의 탐구 질문으로 연결하려면 어떻게 하겠습니까? 질문 만들기 활동이 형식화되는 문제도 함께 말해 보세요.",k:["질문이 '생기는' 장면 설계","묶고·합쳐 공동 탐구질문","질문 개수보다 탐구로 이어짐","하브루타·질문 형성 기법","학생 질문이 수업에 쓰였음을 확인"],
+  r:[["W6","p.7~8","학생이 질문을 만든 것과 질문이 생긴 것은 다르다. 비슷한 질문을 묶고 교과 핵심과 연결해 학급의 탐구질문으로 재구성하면 학생이 질문의 주체가 된다."],["W5","p.14~15","동물농장(6학년 사회): 질문 만들기 → 분류 → 비슷한 질문 묶기 → 탐구질문 확정, 생각수직선으로 입장 변화 확인."],["Q25","Ⅱ","까바·까만·까주 하브루타 놀이, 질문 형성 기법(질문 규칙 → 만들기 → 열린·닫힌 바꾸기 → 우선순위)."]]},
+ {a:NEW_AREA,t:"핵심 아이디어에서 핵심 질문과 탐구 질문을 어떻게 설계하는지 한 단원을 예로 설명해 보세요.",k:["핵심 아이디어 → 핵심 문장 재진술","핵심 문장 → 핵심 질문","사실·개념·논쟁 탐구 질문","학년 눈높이","의도가 담긴 핵심어"],
+  r:[["Q25","Ⅲ 1~3단계","① 핵심 아이디어를 학급 맥락으로 재진술해 핵심 문장 ② 핵심 문장을 '큰 물음'인 핵심 질문으로 ③ 사실적·개념적·논쟁적 탐구 질문으로 구체화."],["W5","p.37","공공미술(6학년) 컨설팅: 의도가 담긴 핵심어(공공미술·행동·자발성·변화)를 넣어 핵심 문장을 다시 진술하고, 개념적 질문을 '관계 중심'으로 정교화."]]},
+ {a:NEW_AREA,t:"'단원 중심 통합 설계'가 왜 필요한지 설명하고, 수석교사로서 학교에 어떻게 확산하겠습니까?",k:["차시의 합 ≠ 단원의 배움","기대하는 학습 결과 먼저","배움의 덩어리","징검다리평가와 전이","교사는 설계자"],
+  r:[["W5","p.6~11","좋은 차시가 모여도 단원 핵심 이해로 이어지지 않으면 배움이 깊어지지 않는다. 활동에서 출발하지 않고 '무엇을 깊이 이해해야 하나'에서 출발해 배움의 흐름·평가·차시 질문을 맞춘다."],["W5","p.8","배움중심수업·주제중심 프로젝트·교육과정-수업-평가-기록 일체화를 단원과 전이까지 넓히는 보완."],["W5","p.70~71","글빛 마을 탐험(2학년): 배움의 증거(도착점)를 먼저 정의하고 경로를 설계."]]},
+ {a:NEW_AREA,t:"징검다리평가와 전이 평가를 한 단원 안에서 어떻게 설계하겠습니까?",k:["배움 형성 지점 확인","전이 과제(삶의 맥락)","성취수준 진술","평가가 다음 수업을 바꿈","간소화는 전문성"],
+  r:[["W5","p.9~10","징검다리평가로 배움이 어디까지 형성됐는지 확인하고, 마지막엔 배운 것으로 생각·판단·해결하는 전이 과제로 배움의 작동을 본다."],["Q25","Ⅴ 4학년","착한 소비 캠페인 수행과제와 인권 UCC 과제처럼 실천하기 단계를 총괄평가로 연결."]]},
+ {a:NEW_AREA,t:"경기도형 질문기반 탐구수업 4단계를 설명하고, 단계마다 쓸 수 있는 사고 전략을 하나씩 말해 보세요.",k:["준비하기","탐구하기","정리하기(일반화)","실천하기(전이)","전 과정 성찰"],
+  r:[["Q25","Ⅰ·Ⅳ","준비(See-Think-Wonder, 네 모퉁이 토론, 스펙트럼, 프레이어 모델) → 탐구(조사, 버블 맵) → 정리(개념지도, 흐름 다이어그램, 일반화 문장) → 실천(전이 질문, 연결–확장–도전 성찰)."],["W6","p.38~39","별자리(6학년 과학): 규칙 발견 → 가설 토의 → 모형 실험 → 결과 비교와 모형의 한계 → 과학자의 탐구와 비교·성찰."]]},
+ {a:NEW_AREA,t:"활동은 풍성한데 수업이 끝나도 개념이 남지 않는다는 교사를 어떻게 컨설팅하겠습니까?",k:["활동→개념 정리 과정","분류 기준 설명하기","일반화 문장","차시 간 연결","수업자가 해법 찾기"],
+  r:[["W5","p.56","생산과 소비(4학년) 컨설팅: 활동의 양보다 활동이 개념으로 정리되는 과정 — 분류에서 그치지 않고 기준을 설명하고 그 기준이 개념 뜻과 어떻게 이어지는지 말하게 함."],["W6","p.8","조사·실험·토의에 참여했다는 사실만으로 탐구가 되지 않는다. 학생의 사고와 연결되어 생각의 변화를 만들 때 탐구가 된다."]]},
+ {a:NEW_AREA,t:"학생의 답을 교사가 대신 다듬어 정리해 버리는 습관이 있는 동료 교사에게 어떤 피드백을 주겠습니까?",k:["기다림의 시간","학생 언어로 정리","SOLO 사고 수준","예전 생각–지금 생각","관찰 증거로 말하기"],
+  r:[["W6","p.16","미디어 홍수 수업자 성찰: 시간 제약으로 학생 답을 교사 언어로 다듬어 준 것이 아쉬움 → 학생 스스로 의미를 구성할 시간 확보."],["W6","p.9","SOLO 분류(단일→다중→관계적→확장추상)로 학생 답의 깊이를 보고 다음 질문을 정한다."]]},
+ {a:NEW_AREA,t:"교과 통합 단원을 설계할 때 유의할 점은 무엇입니까?",k:["각 교과 핵심 아이디어 유지","활동 역할 구분","하나의 핵심 질문","재구성 성취기준 명시","평가와 일관성"],
+  r:[["W6","p.46~52","그림책 슬로 리딩(4학년 18차시): 국어·사회·도덕·미술 핵심 아이디어를 끌어와 (재)구성 성취기준으로 명시."],["W5","p.28","나다움(3학년) 컨설팅: 조각 카드는 '지금의 나에 대한 선언', 연표는 '경험이 나를 만든 인과 설명'으로 역할을 나눠 반복을 피함."]]},
+ {a:NEW_AREA,t:"학습 수준 차이가 크고 특수교육 대상 학생이 있는 학급에서 깊이있는 수업을 어떻게 하겠습니까?",k:["표현 방식 열어 두기","단계적 실마리","소수 의견 존중 발문","협력 구조","모두의 성공 경험"],
+  r:[["W5","p.47","사진·그림·짧은 문장 등 다양한 표현 방법과 충분한 사전 조사 기간."],["W6","p.30~31","2학년 이름표 붙이기·옮겨 붙이기: 1차 생각 → 친구 의견 듣기 → 수정, 소수 의견이 존중되도록 발문 설계."]]},
+ {a:NEW_AREA,t:"AI·디지털 도구를 깊이있는 수업에 활용할 때 지켜야 할 원칙은 무엇입니까?",k:["배움 목적 우선","사고를 드러내는 도구","AI의 한계 경험","디지털 시민성·윤리","학생 질문 정제"],
+  r:[["W5","p.60~61","AI 마음 거울(2학년): AI가 감정을 잘못 읽는 경험 → '따뜻한 입' 공감 대답 설계, 평가요소에 디지털 시민성(AI는 사람을 돕는 도구)."],["W6","p.76~81","AI 질문 도구가 학생 질문을 탐구 가능한 문장으로 다듬어 되돌려 줌."],["PF","p.17","규칙은 누가 정했느냐에 따라 통제도 약속도 된다 — 디지털 사용 약속도 학생 주도로."]]},
+ {a:NEW_AREA,t:"학교에서 '폰프리 스쿨'을 추진하게 되었습니다. 담임교사이자 수석교사로서 어떻게 운영하겠습니까?",k:["학생 주도 5단계","민주시민교육 기회","교육공동체 합의","내려놓은 시간 채우기","교육적 지도"],
+  r:[["PF","p.17~23","생각하기 → 의견 나누기 → 의견 모으기(학생자치회) → 함께 정하기(교직원·보호자) → 실천하고 돌아보기."],["PF","p.24","목적은 수거·보관이 아니라 학생 스스로 내려놓고 배움·관계·건강을 회복하는 문화."],["PF","부록","교과 연계: [4도03-02] 디지털 사회, [4사08-01] 학교 자치, [6국06-04] 매체 이용 성찰."]]},
+ {a:NEW_AREA,t:"정답을 확인하는 과학 수업을 '설명을 찾아가는' 탐구 수업으로 바꾸려면 어떻게 하겠습니까?",k:["가능한 설명 여러 개","모형으로 검토","모순과 한계 발견","과학자의 탐구와 비교","전이 개념(규칙성·관점)"],
+  r:[["W6","p.38~39","별자리(6학년 과학): '지구는 공전한다'를 정답으로 주지 않고 가설을 세워 모형 실험 → 결과 비교 → 모형의 한계 → 과학자의 탐구 성찰. 평가는 탐구 성찰지·발표."]]},
+ {a:NEW_AREA,t:"성취기준과 성취수준의 차이를 설명하고, 성취수준을 수업 설계와 평가에 어떻게 반영하겠습니까?",k:["성취기준=도달 목표","성취수준=도달 정도","평가요소·성취수준 진술","수준별 피드백","학습으로의 평가"],
+  r:[["W6","사례 1~6","각 과정안의 '학습으로의 평가': 평가요소 → 성취수준 → 평가방법."],["W5","p.53","4단계 성취수준 진술 예: 생산과 소비의 뜻·구분·생활 관련성을 수준별로 기술."]]},
+ {a:NEW_AREA,t:"수석교사로서 학교 안 수업 탐구공동체를 어떻게 만들고 이끌겠습니까?",k:["공동 관심사로 시작","함께 설계·실행·성찰","수업 공개 일상화","리더십 넘겨주기","외부 자료·사례 연결"],
+  r:[["W6","p.52","'오마 깊이있는 수업 탐구공동체': 수석교사가 처음 이끌고 이듬해부터 동료가 운영하도록 지원, 해마다 수업 공개와 연구."],["W5","컨설팅 6편","공통점: 핵심 문장·질문 정교화, 수업–평가 일관성, 포용, 활동→개념."]]},
+];
+const CHECKS=["결론이 첫 문장에 있었다","\"~하겠습니다\"로 확신 있게 말했다","내 실제 경험을 1개 넣었다","원칙·법령·교육과정·정책 자료 근거를 말했다","수석교사로서 확산 방법을 말했다","시간 안에 끝냈다"];
+const STD=__STD__;
+
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+let area=store.get("iv_area","all"), idx=0, phase=1, timerId=null, endAt=0, total=0, used=0, startAt=0, sample=null, audioCtx=null, wake=null;
+let mode=store.get("iv_mode","iv");
+
+/* ---------- 탭 ---------- */
+const AREAS=["동료 교사 지원","학생 지도","수업·컨설팅",NEW_AREA];
+function renderTabs(){
+  const nav=$("#tabs"); nav.innerHTML="";
+  const mk=(key,label,n,isNew)=>{const b=el("button","tab");b.type="button";b.dataset.area=key;b.textContent=label+(n?` (${n})`:"");
+    if(isNew){b.append(el("span","new","new"))}
+    b.setAttribute("aria-pressed",key===area?"true":"false");
+    b.onclick=()=>{area=key;store.set("iv_area",area);renderTabs();if(!(area==="all"||Q[idx].a===area))show(pool()[0].i);else show(idx)};
+    nav.append(b)};
+  mk("all","전체",Q.length);
+  AREAS.forEach(a=>mk(a,a,Q.filter(q=>q.a===a).length,a===NEW_AREA));
+}
+
+function pool(){return Q.map((q,i)=>({...q,i})).filter(q=>area==="all"||q.a===area)}
+function show(i){
+  idx=i; const q=Q[i];
+  $("#qArea").textContent=q.a; $("#qText").textContent=q.t;
+  const p=pool(); const pos=p.findIndex(x=>x.i===i)+1;
+  $("#qNo").textContent=`${pos} / ${p.length}`;
+  store.set("iv_last",i); resetFlow();
+}
+function draw(){const p=pool().filter(x=>x.i!==idx);const pick=p[Math.floor(Math.random()*p.length)]||pool()[0];show(pick.i)}
+function next(){const p=pool();const pos=p.findIndex(x=>x.i===idx);show(p[(pos+1)%p.length].i)}
+function fmt(s){const neg=s<0;s=Math.abs(Math.round(s));return (neg?"+":"")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function renderRefs(box,q){
+  box.innerHTML="";
+  (q.r||[]).forEach(([s,pg,txt])=>{const d=el("div","ref",txt);d.append(el("cite",null,`${SRC[s]} · ${pg}`));box.append(d)});
+}
+function setPhase(n){
+  phase=n;["#p1","#p2","#p3"].forEach((s,k)=>$(s).hidden=k+1!==n);
+  [1,2,3].forEach(k=>{$("#st"+k).className="step"+(k===n?" on":k<n?" done":"")});
+}
+function resetFlow(){
+  stop(); ["#m1","#m2","#m3","#m4","#transcript"].forEach(s=>$(s).value="");
+  $("#fb").hidden=true; $("#fb").innerHTML=""; $("#peekBox").hidden=true;
+  $("#peekRef").hidden=!(Q[idx].r&&Q[idx].r.length); $("#peekRef").textContent="근거 미리 보기";
+  $("#t1").textContent=fmt(+$("#prepSel").value); $("#t1").className="timer"; $("#b1 i").style.width="0";
+  $("#startPrep").textContent="구상 시작"; $("#startPrep").disabled=false; setPhase(1);
+}
+function stop(){if(timerId){clearInterval(timerId);timerId=null}}
+function beep(f=880,d=.18){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}catch(e){}}
+async function lock(){try{wake=await navigator.wakeLock?.request("screen")}catch(e){}}
+function unlock(){try{wake?.release()}catch(e){} wake=null}
+
+function run(tEl,bEl,secs,onEnd,overrun){
+  stop(); total=secs; startAt=Date.now(); endAt=startAt+secs*1000; let ended=false;
+  const tick=()=>{
+    const left=(endAt-Date.now())/1000;
+    if(bEl)$(bEl+" i").style.width=Math.max(0,Math.min(100,(1-left/secs)*100))+"%";
+    if(left>0){ $(tEl).textContent=fmt(Math.ceil(left)); $(tEl).classList.toggle("low",left<=15); $(tEl).classList.remove("over"); if(bEl)$(bEl).classList.remove("over"); }
+    else{
+      if(!ended){ended=true;beep(660,.35);onEnd&&onEnd()}
+      if(!overrun){stop();return}
+      $(tEl).textContent=fmt(left); $(tEl).classList.add("over"); if(bEl)$(bEl).classList.add("over");
+    }
+  };
+  tick(); timerId=setInterval(tick,250);
+}
+
+function startPrep(){beep(990,.12);lock();$("#startPrep").textContent="구상 중…";$("#startPrep").disabled=true;
+  run("#t1","#b1",+$("#prepSel").value,()=>{$("#startPrep").disabled=false;startAnswer()},false)}
+function startAnswer(){
+  stop(); setPhase(2);
+  const labels=["결론","근거","경험","확산"];
+  $("#cues").innerHTML="";
+  ["#m1","#m2","#m3","#m4"].forEach((s,k)=>{const d=el("div","cue");d.append(el("em",null,labels[k]),document.createTextNode($(s).value.trim()||"—"));$("#cues").append(d)});
+  beep(990,.12); lock();
+  $("#transcript").focus({preventScroll:true});
+  run("#t2","#b2",+$("#ansSel").value,null,true);
+}
+function endAnswer(){
+  used=(Date.now()-startAt)/1000; stop(); unlock(); beep(520,.15);
+  $("#t3").textContent=fmt(used); $("#t3").style.color=used>total?"var(--pen)":"";
+  $("#checks").innerHTML="";
+  CHECKS.forEach((c,k)=>{const l=el("label");const i=el("input");i.type="checkbox";i.id="ck"+k;if(k===5&&used<=total)i.checked=true;l.append(i,document.createTextNode(c));$("#checks").append(l)});
+  $("#kw").innerHTML=""; Q[idx].k.forEach(w=>$("#kw").append(el("span",null,w)));
+  renderRefs($("#refs"),Q[idx]); $("#refWrap").hidden=!(Q[idx].r&&Q[idx].r.length);
+  setPhase(3); saveHist();
+}
+function selfScore(){return [...document.querySelectorAll("#checks input")].filter(i=>i.checked).length}
+
+function saveHist(ai){
+  const h=store.get("iv_hist",[]);
+  const today=new Date().toISOString().slice(0,10);
+  if(ai!=null&&h.length&&h[0].q===idx){h[0].ai=ai;h[0].self=selfScore()}
+  else h.unshift({d:today,q:idx,s:Math.round(used),lim:total,self:null,ai:null});
+  store.set("iv_hist",h.slice(0,80)); renderHist();
+}
+function renderHist(){
+  const h=store.get("iv_hist",[]); const today=new Date().toISOString().slice(0,10);
+  const dh=store.get("ds_hist",[]);
+  $("#todayChip").textContent=mode==="iv"?`오늘 ${h.filter(x=>x.d===today).length}문항`:`오늘 설계 ${dh.filter(x=>x.d===today).length}건`;
+  $("#hlist").innerHTML=""; $("#hEmpty").hidden=h.length>0;
+  h.slice(0,30).forEach(x=>{
+    const li=el("li");
+    li.append(el("span","n",x.d.slice(5).replace("-","/")),el("span","q",Q[x.q]?.t||""),el("span","n",fmt(x.s)+(x.s>x.lim?" 초과":"")),el("span","n self",x.ai!=null?x.ai+"/10":"—"));
+    $("#hlist").append(li);
+  });
+  $("#dsHist").innerHTML=""; $("#dsEmpty").hidden=dh.length>0;
+  dh.slice(0,30).forEach(x=>{const li=el("li");li.append(el("span","n",x.d.slice(5).replace("-","/")),el("span","q",x.code+" "+x.text),el("span","n",x.where||""),el("span","n self",x.ai!=null?x.ai+"/10":"—"));$("#dsHist").append(li)});
+}
+
+function errMsg(e){return {not_granted:"Claude 사용이 허용되지 않았어요. 키워드와 근거 자료로 돌아보세요.",rate_limited:"요청이 많아요. 잠시 뒤에 다시 눌러 주세요.",cancelled:"채점을 멈췄어요."}[e?.code]||"채점을 받지 못했어요. 잠시 뒤에 다시 시도해 주세요."}
+async function grade(){
+  if(!sample)return;
+  const q=Q[idx];
+  const memo=["결론: "+$("#m1").value,"근거: "+$("#m2").value,"경험: "+$("#m3").value,"확산: "+$("#m4").value].join("\n");
+  const said=$("#transcript").value.trim();
+  const refs=(q.r||[]).map(([s,pg,t])=>`- (${SRC[s]} ${pg}) ${t}`).join("\n")||"(이 문항에 연결된 정책 자료 없음)";
+  const fb=$("#fb"); fb.hidden=false; fb.innerHTML='<p class="pen">채점하는 중…</p>';
+  $("#aiBtn").disabled=true;
+  const prompt=`당신은 경기도 초등 수석교사 선발 2차 심층면접의 엄격하지만 따뜻한 심사위원입니다.
+응시자는 경력 25년의 초등 교사입니다. 아래 답변을 10점 만점으로 채점하세요.
+
+채점 기준(각 2점): ① 결론이 첫 문장에 있고 "~하겠습니다"로 분명함 ② 원칙·교육과정·법령·정책 근거가 맞고 정확함(학교폭력·아동학대·생활지도 등 법적 절차가 필요한 문항에서 빠지면 크게 감점). 아래 [경기도교육청 정책 자료 요점]의 개념(핵심 질문·탐구 질문, 징검다리평가·전이, 준비–탐구–정리–실천 등)을 정확히 쓰면 이 항목에 반영 ③ 응시자 본인의 구체적 경험이 있음 ④ 실천이 '누가·언제·무엇을'로 구체적이고 수석교사로서 동료·학교로 확산함 ⑤ 질문이 묻는 것에 정확히 답했고 2분 분량(약 500~700자)에 맞음.
+답변 시간: ${Math.round(used)}초 / 제한 ${total}초.
+
+[문항] ${q.t}
+[참고 키워드] ${q.k.join(", ")}
+[경기도교육청 정책 자료 요점]
+${refs}
+[구상 메모]
+${memo}
+[구술 답변 받아쓰기]
+${said||"(받아쓰기 없음. 구상 메모만으로 채점하고, 그 사실을 good 또는 fixes에 짧게 언급)"}
+
+JSON만 출력하세요:
+{"score": 0~10 정수, "good": "잘한 점 1문장", "fixes": ["고칠 점 1문장", "고칠 점 1문장"], "better": "응시자 답을 살려 고친 2분 구술 답변. 4~6문장, 말하는 문체, 결론은 '~하겠습니다'. 정책 자료 요점이 있으면 그중 하나를 자연스럽게 근거로 넣기. 경험이 없으면 [내 경험: ○○] 자리표시를 넣기"}`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"default"});
+    const sc=Math.max(0,Math.min(10,parseInt(r.score)||0));
+    fb.innerHTML="";
+    const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
+    fb.append(el("div","score",sc+" / 10"),el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","고친 답 (소리 내어 2번 읽기)"),el("p","better",r.better||""));
+    saveHist(sc);
+  }catch(e){
+    fb.innerHTML=""; fb.append(el("p",null,errMsg(e)));
+    if(e?.code==="not_granted")$("#aiRow").hidden=true;
+  }finally{$("#aiBtn").disabled=false}
+}
+
+/* ---------- 수업 설계 연습 ---------- */
+let dsIdx=null, dsTimerId=null;
+const DS_F=["#d1","#d2","#d3","#d4","#d5","#d6","#d7","#d8","#d9","#d10"];
+const DS_L=["핵심 문장","핵심 질문","탐구 질문(사실적)","탐구 질문(개념적)","탐구 질문(논쟁적)","준비하기","탐구하기","정리하기","실천하기","평가"];
+function dsPool(){
+  const g=$("#fGrade").value, s=$("#fSubj").value, rf=$("#fRef").checked;
+  return STD.map((x,i)=>i).filter(i=>{const x=STD[i];return (!g||x[4].some(p=>String(p[0])===g))&&(!s||x[2]===s)&&(!rf||x[5].length)});
+}
+function where(x){const g=$("#fGrade").value;return x[4].filter(p=>!g||String(p[0])===g).map(p=>`${p[0]}학년 ${p[1]}학기 ${p[2]}`)}
+function dsShow(i){
+  dsIdx=i; const x=STD[i]; store.set("ds_last",i);
+  $("#dsArea").textContent=`${x[2]} · ${x[3]}`;
+  const p=dsPool(); $("#dsNo").textContent=p.length?`${p.indexOf(i)+1} / ${p.length}`:"";
+  const t=$("#dsText"); t.textContent=""; t.append(el("span","std-code",x[0]),document.createTextNode(x[1]));
+  const pl=$("#dsPlace"); pl.textContent=""; pl.append(el("b",null,"우리 학교 배치 "),document.createTextNode(where(x).join(" / ")));
+  const c=$("#dsRefs"); c.innerHTML=""; x[5].forEach(r=>c.append(el("span","chip","★ "+r)));
+  $("#dsFb").hidden=true; $("#dsFb").innerHTML="";
+}
+function dsDraw(){const p=dsPool();if(!p.length){$("#dsText").textContent="조건에 맞는 성취기준이 없어요. 필터를 바꿔 보세요.";$("#dsPlace").textContent="";$("#dsRefs").innerHTML="";$("#dsNo").textContent="";dsIdx=null;return}
+  const c=p.filter(i=>i!==dsIdx);dsShow((c.length?c:p)[Math.floor(Math.random()*(c.length||p.length))])}
+function dsTimerReset(){if(dsTimerId){clearInterval(dsTimerId);dsTimerId=null}const s=+$("#dsTime").value;$("#dsTimer").textContent=s?fmt(s):"—";$("#dsTimer").className="timer";$("#dsTimer").style.fontSize="1.6rem";$("#dsStart").disabled=!s;$("#dsStart").textContent="타이머 시작"}
+function dsStart(){const s=+$("#dsTime").value;if(!s)return;const end=Date.now()+s*1000;beep(990,.12);$("#dsStart").textContent="진행 중";$("#dsStart").disabled=true;
+  dsTimerId=setInterval(()=>{const left=(end-Date.now())/1000;$("#dsTimer").textContent=fmt(left>0?Math.ceil(left):left);$("#dsTimer").classList.toggle("low",left>0&&left<=60);$("#dsTimer").classList.toggle("over",left<=0);if(left<=0&&left>-0.3)beep(660,.35)},250)}
+async function dsGrade(){
+  if(!sample||dsIdx==null)return;
+  const x=STD[dsIdx];
+  const plan=DS_F.map((s,k)=>`${DS_L[k]}: ${$(s).value.trim()||"(비어 있음)"}`).join("\n");
+  const fb=$("#dsFb"); fb.hidden=false; fb.innerHTML='<p class="pen">설계를 읽는 중…</p>'; $("#dsAi").disabled=true;
+  const prompt=`당신은 경기도 초등 수석교사 선발 심사위원이자 수업 컨설턴트입니다. 응시자(경력 25년 초등 교사)가 아래 성취기준으로 짠 단원 설계 초안을 10점 만점으로 평가하세요.
+
+기준(각 2점): ① 핵심 문장이 성취기준·교과 핵심 아이디어를 학급 맥락의 일반화로 재진술했는가 ② 핵심 질문이 핵심 문장을 풀어내는 '큰 물음'이고 탐구 질문이 사실적→개념적→논쟁적으로 이어지는가 ③ 경기도형 질문기반 탐구수업 4단계(준비–탐구–정리–실천)가 보이고 정리하기에서 학생이 일반화 문장을 만드는가 ④ 실천하기에 전이 질문·성찰, 학생 질문을 받는 장치가 있는가 ⑤ 평가가 성취기준과 정렬되고 징검다리평가·전이 평가가 단원 흐름 안에 있는가. 학년 발달 수준에 맞지 않으면 감점.
+
+[성취기준] ${x[0]} ${x[1]}
+[교과·영역] ${x[2]} · ${x[3]}
+[학교 배치] ${x[4].map(p=>`${p[0]}학년 ${p[1]}학기 ${p[2]}`).join(" / ")}
+[설계 초안]
+${plan}
+
+JSON만 출력하세요:
+{"score": 0~10 정수, "good": "잘한 점 1문장", "fixes": ["고칠 점 1문장", "고칠 점 1문장", "고칠 점 1문장"], "revised": {"핵심 문장":"…","핵심 질문":"…","탐구 질문":["사실적 …","개념적 …","논쟁적 …"],"흐름":"준비 → 탐구 → 정리 → 실천을 한두 문장으로","평가":"평가요소 · 성취수준 한 줄 · 평가방법"}}
+빈칸이 많으면 점수를 낮추되 revised는 성취기준에 맞게 완성해서 예시로 주세요.`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"default"});
+    const sc=Math.max(0,Math.min(10,parseInt(r.score)||0));
+    fb.innerHTML="";
+    const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
+    const rv=r.revised||{}; const lines=[];
+    if(rv["핵심 문장"])lines.push("핵심 문장 — "+rv["핵심 문장"]);
+    if(rv["핵심 질문"])lines.push("핵심 질문 — "+rv["핵심 질문"]);
+    (rv["탐구 질문"]||[]).forEach(t=>lines.push("탐구 질문 — "+t));
+    if(rv["흐름"])lines.push("흐름 — "+rv["흐름"]);
+    if(rv["평가"])lines.push("평가 — "+rv["평가"]);
+    fb.append(el("div","score",sc+" / 10"),el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","다듬은 설계 예시"),el("p","better",lines.join("\n")));
+    const h=store.get("ds_hist",[]); h.unshift({d:new Date().toISOString().slice(0,10),code:x[0],text:x[1],where:x[4].map(p=>p[0]+"-"+p[1]).join(","),ai:sc});
+    store.set("ds_hist",h.slice(0,60)); renderHist();
+  }catch(e){fb.innerHTML="";fb.append(el("p",null,errMsg(e)));if(e?.code==="not_granted")$("#dsAi").hidden=true}
+  finally{$("#dsAi").disabled=false}
+}
+
+/* ---------- 모드 ---------- */
+function setMode(m){
+  mode=m; store.set("iv_mode",m);
+  $("#ivView").hidden=m!=="iv"; $("#dsView").hidden=m!=="ds";
+  $("#modeIv").setAttribute("aria-pressed",m==="iv"); $("#modeDs").setAttribute("aria-pressed",m==="ds");
+  $("#subLine").textContent=m==="iv"?"문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인":"우리 학교에 배치된 성취기준으로 핵심 질문·탐구 질문·4단계를 설계하고 피드백 받기";
+  if(m==="iv")stop(); renderHist();
+}
+
+/* ---------- 연결 ---------- */
+renderTabs();
+$("#drawBtn").onclick=draw; $("#nextBtn").onclick=next;
+$("#startPrep").onclick=startPrep; $("#skipPrep").onclick=()=>{$("#startPrep").disabled=false;startAnswer()};
+$("#peekRef").onclick=()=>{const b=$("#peekBox");b.hidden=!b.hidden;if(!b.hidden)renderRefs(b,Q[idx]);$("#peekRef").textContent=b.hidden?"근거 미리 보기":"근거 접기"};
+$("#stopAns").onclick=endAnswer;
+$("#retryBtn").onclick=()=>show(idx); $("#newBtn").onclick=draw;
+$("#prepSel").onchange=()=>{if(phase===1&&!timerId)$("#t1").textContent=fmt(+$("#prepSel").value)};
+$("#aiBtn").onclick=grade;
+$("#modeIv").onclick=()=>setMode("iv"); $("#modeDs").onclick=()=>setMode("ds");
+[...new Set(STD.map(x=>x[2]))].forEach(s=>{const o=el("option",null,s);o.value=s;$("#fSubj").append(o)});
+["#fGrade","#fSubj","#fRef"].forEach(s=>$(s).onchange=dsDraw);
+$("#dsDraw").onclick=dsDraw; $("#dsTime").onchange=dsTimerReset; $("#dsStart").onclick=dsStart;
+$("#dsAi").onclick=dsGrade;
+$("#dsClear").onclick=()=>{DS_F.forEach(s=>$(s).value="");$("#dsFb").hidden=true};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&timerId&&!wake)lock()});
+
+if(!AREAS.includes(area)&&area!=="all")area="all";
+const last=store.get("iv_last",3); idx=(Q[last]&&(area==="all"||Q[last].a===area))?last:pool()[0].i;
+show(idx);
+const dl=store.get("ds_last",null); if(dl!=null&&STD[dl])dsShow(dl); else dsDraw();
+dsTimerReset(); setMode(mode==="ds"?"ds":"iv");
+(async()=>{try{sample=await window.claude?.use?.("sample")}catch(e){sample=null}
+  if(sample){$("#aiRow").hidden=false;$("#dsAi").hidden=false}else{$("#dsNote").textContent="AI 피드백을 쓸 수 없는 환경이에요. 점검표로 스스로 확인해 보세요."}})();
+</script>
