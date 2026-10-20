@@ -106,6 +106,31 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 .chip{font-size:.78rem;border:1px solid var(--warn);color:var(--warn);border-radius:3px;padding:1px 7px}
 .ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .ladder label{border-top:3px solid var(--sage);padding-top:6px}
+/* 답변 노트 */
+[hidden]{display:none!important}
+.past{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px}
+.past-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;font-size:.86rem;color:var(--muted)}
+.past-line b{color:var(--ink)}
+.notes{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.notes>summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.nfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;align-items:center}
+.nfilter .tab{font-size:.8rem;padding:4px 11px}
+.sync{font-size:.76rem;color:var(--muted);margin-left:auto}
+.ngroup{border-top:1px solid var(--line);padding:10px 0}
+.ngroup>summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:3px}
+.ngroup>summary::-webkit-details-marker{display:none}
+.ngroup .nq{font-family:var(--f-q);font-size:.98rem;line-height:1.55}
+.ngroup .nmeta{font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.model{background:var(--sage-soft);border-left:3px solid var(--sage);border-radius:0 4px 4px 0;padding:12px 14px}
+.model .better{font-family:var(--f-q);font-size:.98rem;line-height:1.75;white-space:pre-wrap;margin:4px 0 0}
+.att{border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:6px}
+.att-h{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-family:var(--f-num);font-size:.78rem;color:var(--muted)}
+.att-h .sc{font-family:var(--f-pen);font-size:1.3rem;color:var(--pen)}
+.att .said{white-space:pre-wrap;margin:0}
+.att .better{font-family:var(--f-q);white-space:pre-wrap;margin:0;line-height:1.7}
+.att ul{margin:0;padding-left:18px}
+.linkbtn{font:inherit;font-size:.78rem;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;margin-left:auto}
 @media (max-width:560px){
   .memo,.checks{grid-template-columns:1fr}
   .cues,.ladder{grid-template-columns:1fr 1fr}
@@ -141,6 +166,10 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
     <div class="qactions">
       <button class="btn" id="drawBtn">다른 문항 뽑기</button>
       <button class="btn" id="nextBtn">다음 문항 순서대로</button>
+    </div>
+    <div class="past" id="pastBox" hidden>
+      <div class="past-line"><span id="pastLine"></span><button class="btn" id="pastBtn" type="button">지난 답변 보기</button></div>
+      <div class="nbody" id="pastList" hidden></div>
     </div>
   </section>
 
@@ -214,6 +243,18 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
     </div>
     <div class="fb" id="fb" hidden></div>
   </section>
+
+  <details class="notes" id="noteBox">
+    <summary>답변 노트 <span class="qno" id="noteCount"></span></summary>
+    <div class="nfilter" role="group" aria-label="답변 노트 보기">
+      <button type="button" class="tab" data-f="all" aria-pressed="true">전체</button>
+      <button type="button" class="tab" data-f="weak" aria-pressed="false">7점 미만 (약점)</button>
+      <button type="button" class="tab" data-f="nograde" aria-pressed="false">채점 전</button>
+      <span class="sync" id="syncNote"></span>
+    </div>
+    <div id="noteList"></div>
+    <p class="empty" id="noteEmpty">아직 저장된 답변이 없어요. '답변 끝'을 누르면 말한 내용과 메모가, 빨간펜 채점을 받으면 고친 답이 여기에 문항별로 쌓입니다.</p>
+  </details>
 
   <details class="history" id="histBox">
     <summary>연습 기록</summary>
@@ -408,7 +449,7 @@ function show(i){
   $("#qArea").textContent=q.a; $("#qText").textContent=q.t;
   const p=pool(); const pos=p.findIndex(x=>x.i===i)+1;
   $("#qNo").textContent=`${pos} / ${p.length}`;
-  store.set("iv_last",i); resetFlow();
+  store.set("iv_last",i); resetFlow(); $("#pastList").hidden=true; $("#pastBtn").textContent="지난 답변 보기"; renderPast();
 }
 function draw(){const p=pool().filter(x=>x.i!==idx);const pick=p[Math.floor(Math.random()*p.length)]||pool()[0];show(pick.i)}
 function next(){const p=pool();const pos=p.findIndex(x=>x.i===idx);show(p[(pos+1)%p.length].i)}
@@ -467,8 +508,110 @@ function endAnswer(){
   CHECKS.forEach((c,k)=>{const l=el("label");const i=el("input");i.type="checkbox";i.id="ck"+k;if(k===5&&used<=total)i.checked=true;l.append(i,document.createTextNode(c));$("#checks").append(l)});
   $("#kw").innerHTML=""; Q[idx].k.forEach(w=>$("#kw").append(el("span",null,w)));
   renderRefs($("#refs"),Q[idx]); $("#refWrap").hidden=!(Q[idx].r&&Q[idx].r.length);
-  setPhase(3); saveHist();
+  setPhase(3); saveHist(); recordAttempt();
 }
+
+/* ---------- 답변 노트: 시도마다 1건 저장 (db 있으면 내 계정에 동기화, 없으면 이 브라우저) ---------- */
+let answers=[], ansCol=null, curAtt=null, curWrite=null, noteFilter="all";
+const LOCAL_KEY="iv_ans";
+const qIndexOf=a=>{const k=Q.findIndex(x=>x.t===a.qt);return k>=0?k:(Q[a.q]?a.q:-1)};
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function localSave(){if(!ansCol)store.set(LOCAL_KEY,answers.slice(0,300))}
+async function putAtt(rec){
+  if(ansCol){await ansCol.doc(rec.id).set(rec)} else {const k=answers.findIndex(a=>a.id===rec.id);if(k>=0)answers[k]=rec;else answers.unshift(rec);localSave();renderNotes()}
+}
+function recordAttempt(){
+  const q=Q[idx];
+  const rec={id:newId(),q:idx,qt:q.t,a:q.a,d:new Date().toISOString().slice(0,10),ts:Date.now(),used:Math.round(used),lim:total,
+    memo:["#m1","#m2","#m3","#m4"].map(s=>$(s).value.trim()),said:$("#transcript").value.trim(),ai:null,good:"",fixes:[],better:""};
+  curAtt=rec; curWrite=putAtt(rec).catch(()=>{$("#syncNote").textContent="저장하지 못했어요. 연결을 확인해 주세요."});
+}
+async function gradeAttempt(sc,r){
+  if(!curAtt||curAtt.q!==idx)return;
+  try{await curWrite}catch(e){}
+  curAtt={...curAtt,ai:sc,good:r.good||"",fixes:r.fixes||[],better:r.better||"",self:selfScore(),
+    said:$("#transcript").value.trim()||curAtt.said};
+  curWrite=putAtt(curAtt).catch(()=>{$("#syncNote").textContent="채점 결과를 저장하지 못했어요."});
+}
+async function delAtt(id){
+  if(!confirm("이 답변 기록을 지울까요?"))return;
+  if(ansCol){try{await ansCol.doc(id).delete()}catch(e){}} else {answers=answers.filter(a=>a.id!==id);localSave();renderNotes()}
+}
+function attView(a){
+  const box=el("div","att");
+  const h=el("div","att-h");
+  h.append(el("span",null,a.d.slice(5).replace("-","/")),el("span",null,"답변 "+fmt(a.used)+(a.used>a.lim?" (초과)":"")));
+  if(a.ai!=null)h.append(el("span","sc",a.ai+"/10")); else h.append(el("span",null,"채점 전"));
+  const del=el("button","linkbtn","삭제");del.type="button";del.onclick=()=>delAtt(a.id);h.append(del);
+  box.append(h);
+  box.append(el("p","sect-h","내가 말한 답"));
+  const memo=(a.memo||[]).map((v,k)=>v?["결론","근거","경험","확산"][k]+": "+v:"").filter(Boolean).join("\n");
+  box.append(el("p","said",a.said||(memo?"(받아쓰기 없음 · 구상 메모)\n"+memo:"(기록 없음)")));
+  if(a.fixes&&a.fixes.length){box.append(el("p","sect-h","고칠 점"));const ul=el("ul");a.fixes.forEach(f=>ul.append(el("li",null,f)));box.append(ul)}
+  if(a.better){box.append(el("p","sect-h","고친 답"));box.append(el("p","better",a.better))}
+  return box;
+}
+function modelView(list){
+  const g=list.filter(a=>a.better).sort((x,y)=>(y.ai-x.ai)||(y.ts-x.ts))[0];
+  if(!g)return null;
+  const m=el("div","model");m.append(el("p","sect-h",`예시 답변 (${g.d.slice(5).replace("-","/")} · ${g.ai}점 답을 고친 것) — 소리 내어 2번 읽기`),el("p","better",g.better));
+  return m;
+}
+function groupByQ(){
+  const map=new Map();
+  answers.forEach(a=>{const k=qIndexOf(a);const key=k>=0?"q"+k:"t"+a.qt;if(!map.has(key))map.set(key,{k,qt:a.qt,a:a.a,list:[]});map.get(key).list.push(a)});
+  map.forEach(g=>g.list.sort((x,y)=>y.ts-x.ts));
+  return [...map.values()].sort((x,y)=>y.list[0].ts-x.list[0].ts);
+}
+const best=list=>{const s=list.filter(a=>a.ai!=null).map(a=>a.ai);return s.length?Math.max(...s):null};
+function renderNotes(){
+  const groups=groupByQ();
+  $("#noteCount").textContent=answers.length?`${groups.length}문항 · ${answers.length}회`:"";
+  const shown=groups.filter(g=>{const b=best(g.list);return noteFilter==="all"||(noteFilter==="weak"?(b!=null&&b<7):g.list.every(a=>a.ai==null))});
+  const box=$("#noteList");box.innerHTML="";
+  $("#noteEmpty").hidden=shown.length>0;
+  if(!shown.length&&answers.length)$("#noteEmpty").textContent=noteFilter==="weak"?"7점 미만인 문항이 없어요.":"채점 전인 문항이 없어요.";
+  shown.forEach(g=>{
+    const d=el("details","ngroup");const sm=el("summary");
+    const meta=el("div","nmeta");const b=best(g.list);
+    meta.append(el("span","area",g.a),el("span",null,`${g.list.length}회 연습`),el("span",null,b!=null?`최고 ${b}점`:"채점 전"),el("span",null,"최근 "+g.list[0].d.slice(5).replace("-","/")));
+    sm.append(meta,el("span","nq",g.qt));d.append(sm);
+    const body=el("div","nbody");
+    if(g.k>=0){const go=el("button","btn primary","이 문항 다시 연습");go.type="button";go.style.alignSelf="flex-start";
+      go.onclick=()=>{setMode("iv");if(!(area==="all"||Q[g.k].a===area)){area="all";store.set("iv_area",area);renderTabs()}show(g.k);window.scrollTo({top:0,behavior:"smooth"})};body.append(go)}
+    const m=modelView(g.list);if(m)body.append(m);
+    g.list.forEach(a=>body.append(attView(a)));
+    d.append(body);box.append(d);
+  });
+  renderPast();
+}
+function renderPast(){
+  const list=answers.filter(a=>qIndexOf(a)===idx).sort((x,y)=>y.ts-x.ts);
+  $("#pastBox").hidden=!list.length;
+  if(!list.length){$("#pastList").hidden=true;return}
+  const b=best(list);
+  $("#pastLine").textContent=`이 문항 지난 연습 ${list.length}회 · ${b!=null?"최고 "+b+"점":"채점 전"} · 최근 ${list[0].d.slice(5).replace("-","/")}`;
+  const pl=$("#pastList");
+  if(!pl.hidden){pl.innerHTML="";const m=modelView(list);if(m)pl.append(m);list.forEach(a=>pl.append(attView(a)))}
+}
+async function initAnswers(){
+  answers=store.get(LOCAL_KEY,[]); renderNotes();
+  $("#syncNote").textContent="이 브라우저에만 저장";
+  try{
+    const [db,user]=await Promise.all([window.claude?.use?.("db"),window.claude?.use?.("user")]);
+    const uid=user?await user.id():null;
+    if(!db||!uid)return;
+    const col=db.doc("data/users/"+uid+"/iv").collection("answers");
+    const local=store.get(LOCAL_KEY,[]);
+    for(const a of local){try{await col.doc(a.id).set(a)}catch(e){}}
+    if(local.length)store.set(LOCAL_KEY,[]);
+    ansCol=col;
+    $("#syncNote").textContent="내 계정에 저장 · 다른 기기에서도 보임";
+    col.orderBy("ts","desc").limit(1000).onSnapshot(snap=>{answers=snap.docs.map(d=>d.data());renderNotes()},
+      ()=>{$("#syncNote").textContent="동기화가 끊겼어요. 새로고침해 주세요."});
+  }catch(e){}
+}
+
 function selfScore(){return [...document.querySelectorAll("#checks input")].filter(i=>i.checked).length}
 
 function saveHist(ai){
@@ -524,7 +667,7 @@ JSON만 출력하세요:
     fb.innerHTML="";
     const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
     fb.append(el("div","score",sc+" / 10"),el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","고친 답 (소리 내어 2번 읽기)"),el("p","better",r.better||""));
-    saveHist(sc);
+    saveHist(sc); gradeAttempt(sc,r);
   }catch(e){
     fb.innerHTML=""; fb.append(el("p",null,errMsg(e)));
     if(e?.code==="not_granted")$("#aiRow").hidden=true;
@@ -608,6 +751,8 @@ $("#stopAns").onclick=endAnswer;
 $("#retryBtn").onclick=()=>show(idx); $("#newBtn").onclick=draw;
 $("#prepSel").onchange=()=>{if(phase===1&&!timerId)$("#t1").textContent=fmt(+$("#prepSel").value)};
 $("#aiBtn").onclick=grade;
+$("#pastBtn").onclick=()=>{const pl=$("#pastList");pl.hidden=!pl.hidden;$("#pastBtn").textContent=pl.hidden?"지난 답변 보기":"지난 답변 접기";renderPast()};
+document.querySelectorAll(".nfilter .tab").forEach(b=>b.onclick=()=>{noteFilter=b.dataset.f;document.querySelectorAll(".nfilter .tab").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));renderNotes()});
 $("#modeIv").onclick=()=>setMode("iv"); $("#modeDs").onclick=()=>setMode("ds");
 [...new Set(STD.map(x=>x[2]))].forEach(s=>{const o=el("option",null,s);o.value=s;$("#fSubj").append(o)});
 ["#fGrade","#fSubj","#fRef"].forEach(s=>$(s).onchange=dsDraw);
@@ -620,7 +765,7 @@ if(!AREAS.includes(area)&&area!=="all")area="all";
 const last=store.get("iv_last",3); idx=(Q[last]&&(area==="all"||Q[last].a===area))?last:pool()[0].i;
 show(idx);
 const dl=store.get("ds_last",null); if(dl!=null&&STD[dl])dsShow(dl); else dsDraw();
-dsTimerReset(); setMode(mode==="ds"?"ds":"iv");
+dsTimerReset(); setMode(mode==="ds"?"ds":"iv"); initAnswers();
 (async()=>{try{sample=await window.claude?.use?.("sample")}catch(e){sample=null}
   if(sample){$("#aiRow").hidden=false;$("#dsAi").hidden=false}else{$("#dsNote").textContent="AI 피드백을 쓸 수 없는 환경이에요. 점검표로 스스로 확인해 보세요."}})();
 </script>
