@@ -127,6 +127,17 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 .past-line b{color:var(--ink)}
 .notes{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
 .notes>summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumbs:empty{display:none}
+.thumb{position:relative;width:88px;height:116px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:15px;line-height:26px;cursor:pointer;padding:0}
+.thumb span{position:absolute;left:4px;bottom:3px;font:600 .7rem var(--f-num);color:#fff;background:rgba(0,0,0,.55);padding:0 5px;border-radius:4px}
+.marks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.marks li{border-left:3px solid var(--pen);padding:4px 0 4px 10px;font-size:.92rem;line-height:1.6}
+.marks .w{font-weight:700;font-size:.8rem;color:var(--muted);display:block}
+.marks del{color:var(--muted)}
+.marks ins{text-decoration:none;color:var(--pen);font-family:var(--f-pen);font-size:1.25rem;line-height:1.3}
 .helper{border:1px dashed var(--line);border-radius:10px;padding:8px 12px;background:var(--sage-soft)}
 .helper .helpbody{display:flex;flex-direction:column;gap:6px;margin-top:6px;font-size:.86rem;line-height:1.6}
 .helper .helpbody p{margin:0}
@@ -172,7 +183,7 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 
   <div class="modes" role="group" aria-label="연습 종류">
     <button type="button" id="modeIv" aria-pressed="true">심층면접</button>
-    <button type="button" id="modeDs" aria-pressed="false">수업 설계 연습</button>
+    <button type="button" id="modeDs" aria-pressed="false">수업 설계 첨삭</button>
   </div>
 
   <!-- ===== 심층면접 ===== -->
@@ -302,11 +313,12 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
   </details>
   </div>
 
-  <!-- ===== 수업 설계 연습: 깊수다 수업안 기반 ===== -->
+  <!-- ===== 수업 설계 첨삭: 손으로 쓴 설계 사진 → 빨간펜 ===== -->
   <div id="dsView" style="display:contents" hidden>
   <div class="modes" role="group" aria-label="과제 고르기" style="align-self:flex-start">
     <button type="button" id="dsSrcCase" aria-pressed="true">수업안 과제</button>
     <button type="button" id="dsSrcStd" aria-pressed="false">성취기준 뽑기</button>
+    <button type="button" id="dsSrcFree" aria-pressed="false">내 단원</button>
   </div>
   <section class="qcard">
     <div class="filters" id="dsCaseFilter">
@@ -317,6 +329,7 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
       <label>교과 <select id="fSubj"><option value="">전체</option></select></label>
       <label><input type="checkbox" id="fRef"> 근거 사례 있는 성취기준만</label>
     </div>
+    <div id="dsFreeBox" hidden><label class="full" for="dsFreeText" style="display:flex;flex-direction:column;gap:4px;font-size:.9rem">내가 설계한 단원 <span class="hint">학년·교과·단원명·성취기준을 적어 주면 그에 맞춰 첨삭해요(비워도 됩니다)</span><textarea id="dsFreeText" rows="2" placeholder="예) 3학년 국어 6단원 — [4국01-06] 주제에 적절한 의견과 이유를 제시하고 …"></textarea></label></div>
     <div class="qmeta"><span class="area" id="dsArea"></span><span class="qno" id="dsNo"></span></div>
     <p class="qtext" id="dsText"></p>
     <p class="place" id="dsPlace"></p>
@@ -332,7 +345,26 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
   </section>
 
   <section class="panel">
-    <p class="hint">깊수다·경기도 프레임워크의 공통 틀(단원 설계표 → 공개 차시 과정안 → 학습으로의 평가)대로 씁니다. 빈칸이 있어도 피드백은 받을 수 있어요.</p>
+    <p class="sect-h">손으로 쓴 설계 제출</p>
+    <p class="hint">종이에 쓴 단원 설계표·공개 차시 과정안·평가 계획을 사진으로 찍어 올리면, 글씨를 읽어 옮기고 빨간펜으로 첨삭해요. 여러 장을 한 번에 올려도 됩니다.</p>
+    <div class="qactions">
+      <button class="btn" id="dsPick" type="button">사진 올리기</button>
+      <input type="file" id="dsFile" accept="image/*" multiple hidden>
+      <button class="btn" id="dsClearPh" type="button" hidden>사진 모두 빼기</button>
+      <span class="hint" id="dsPhNote"></span>
+    </div>
+    <div class="thumbs" id="dsThumbs"></div>
+    <label for="dsMemo" style="display:flex;flex-direction:column;gap:4px;font-size:.9rem">덧붙일 말 <span class="hint">특히 봐 줬으면 하는 부분, 사진에서 흐린 글자 등(선택)</span><textarea id="dsMemo" rows="2"></textarea></label>
+    <div class="qactions">
+      <button class="btn pen" id="dsAi" type="button" disabled>빨간펜 첨삭 받기</button>
+      <span class="hint" id="dsNote"></span>
+    </div>
+    <div class="fb" id="dsFb" hidden></div>
+    <div class="rub" id="dsExWrap" hidden>
+      <p class="sect-h">원 수업안과 비교하기 <span style="font-weight:400" id="dsExSrc"></span></p>
+      <button class="btn" id="dsExBtn" type="button" style="align-self:flex-start">원 수업안 보기</button>
+      <div id="dsEx" hidden style="display:flex;flex-direction:column;gap:6px;font-size:.9rem"></div>
+    </div>
     <details class="helper">
       <summary class="sect-h" style="cursor:pointer">설계 도우미 — 프레임워크·핵심 문장 7단계·GRASPS</summary>
       <div class="helpbody">
@@ -344,39 +376,6 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
         <p><b>탐구 질문</b> 차시마다 꼭 만들 필요는 없고 정해진 유형으로 나눌 필요도 없어요. 핵심 질문에 차츰 다가가는 몇 개의 질문을 순서 있게 두고, 학생이 질문을 만들고 고르는 과정을 넣어 보세요.</p>
       </div>
     </details>
-    <p class="sect-h">① 단원 설계</p>
-    <div class="memo">
-      <label for="d1">핵심어 <span>의도가 담긴 개념어 2~4개</span><textarea id="d1" rows="2"></textarea></label>
-      <label for="d2">핵심 문장 <span>핵심 아이디어를 우리 반 맥락으로 재진술</span><textarea id="d2" rows="2"></textarea></label>
-      <label class="full" for="d3">핵심 질문 <span>단원의 '큰 물음' — 정답이 하나가 아닌 질문</span><textarea id="d3" rows="2"></textarea></label>
-    </div>
-    <div class="memo"><label class="full" for="d4">탐구 질문 <span>핵심 질문에 다가가는 차시별 질문 2~4개 — 학생이 만들고 고르는 과정도 적어 보세요</span><textarea id="d4" rows="3"></textarea></label></div>
-    <div class="memo"><label class="full" for="d7">배움 덩어리와 차시 흐름 <span>예) ①이해(1–3) → ②분석(4–9) → ③실천(10–13), 징검다리평가 위치 표시</span><textarea id="d7" rows="3"></textarea></label></div>
-    <p class="sect-h">② 공개 차시 과정안 <span style="font-weight:400" id="dsLessonNo"></span></p>
-    <div class="ladder memo">
-      <label for="d8">준비 <span>인지적 갈등·질문이 생기는 장면</span><textarea id="d8" rows="4"></textarea></label>
-      <label for="d9">탐구 <span>탐구 질문·모둠 활동·도구</span><textarea id="d9" rows="4"></textarea></label>
-      <label for="d10">정리·실천 <span>학생이 만드는 일반화·전이</span><textarea id="d10" rows="4"></textarea></label>
-      <label for="d11">성찰 <span>예전 생각–지금 생각 등</span><textarea id="d11" rows="4"></textarea></label>
-    </div>
-    <p class="sect-h">③ 학습으로의 평가 · 포용</p>
-    <div class="memo">
-      <label for="d12">평가요소 · 방법 <span>징검다리평가 / 전이 과제</span><textarea id="d12" rows="3"></textarea></label>
-      <label for="d13">성취수준 <span>매우잘함~노력요함 (관찰 가능한 행동으로)</span><textarea id="d13" rows="3"></textarea></label>
-      <label class="full" for="d14">피드백·포용 전략 <span>단계적 실마리, 표현 방식 열어 두기, 기다림</span><textarea id="d14" rows="2"></textarea></label>
-    </div>
-    <div class="qactions">
-      <button class="btn pen" id="dsAi" hidden>빨간펜 설계 피드백</button>
-      <button class="btn" id="dsSave" type="button">임시 저장</button>
-      <button class="btn" id="dsClear">설계 지우기</button>
-      <span class="hint" id="dsNote"></span>
-    </div>
-    <div class="fb" id="dsFb" hidden></div>
-    <div class="rub" id="dsExWrap" hidden>
-      <p class="sect-h">원 수업안과 비교하기 <span style="font-weight:400" id="dsExSrc"></span></p>
-      <button class="btn" id="dsExBtn" type="button" style="align-self:flex-start">원 수업안 보기</button>
-      <div id="dsEx" hidden style="display:flex;flex-direction:column;gap:6px;font-size:.9rem"></div>
-    </div>
     <details>
       <summary class="sect-h" style="cursor:pointer">채점기준안 (100점)</summary>
       <ul class="hint" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px" id="dsRubList"></ul>
@@ -384,9 +383,9 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
   </section>
 
   <details class="notes" id="dsNoteBox">
-    <summary>설계 기록 <span class="qno" id="dsCount"></span> <span class="sync" id="dsSync"></span></summary>
+    <summary>첨삭 기록 <span class="qno" id="dsCount"></span> <span class="sync" id="dsSync"></span></summary>
     <div id="dsList"></div>
-    <p class="empty" id="dsEmpty">아직 기록이 없어요. 피드백을 받거나 임시 저장하면 과제별로 쌓입니다.</p>
+    <p class="empty" id="dsEmpty">아직 기록이 없어요. 첨삭을 받으면 과제별로 쌓입니다.</p>
   </details>
   </div>
 </div>
@@ -1673,8 +1672,8 @@ const DS_CASES=[
   ex:{intent:"배려와 책임 사이의 균형 탐구 — 잘못을 알리는 일이 고자질이 아니라 친구의 성장과 공동체 안전을 위한 선택일 수 있음을 여러 시각에서.",kq:"(핵심 문장) 우리는 나와 타인, 공동체 간에 서로 도덕적 관계를 맺으며 생활한다.",chunks:"7차시: 질문으로 논제 만나기(1, 그림책 『이를까? 말까?』) → 핵심 쟁점 찾기(2) → 자료 조사·분석(3) → 입론서 쓰기(4) → 2:2 토론(5~6) → 실천(7)",lesson:"2:2 토론: 찬반 입장 정하기 → 토론을 여는 주장 → 질의·반박 → 공존을 향한 주장 → 토론 후 생각 나누기. 공존 방안 예: 중요한 잘못은 알리고 작은 실수는 스스로 깨달을 기회 주기, 학급 배려 규칙",eval:"배려를 이해하고 여러 관계에 적용할 방법 탐색하기 / 타당한 주장과 근거로 의견을 나누고 조율하기, 4단계",reflect:"실천 예: 성찰형(역할 놀이 — 직접 말하기·선생님께 말하기·넘어가기 비교, 설득하는 글쓰기) / 사회참여형(우리 반 배려 규칙 만들기, 배려 캠페인)."}}
 ];
 
-/* ---------- 수업 설계 연습 (깊수다 수업안 기반) ---------- */
-let dsSrc=store.get("ds_src","case"), dsCase=0, dsIdx=null, dsTimerId=null, designs=[], dsCol=null, dsCurId=null;
+/* ---------- 수업 설계 첨삭 (손으로 쓴 설계 사진) ---------- */
+let dsSrc=store.get("ds_src","case"), dsCase=0, dsIdx=null, dsTimerId=null, designs=[], dsCol=null, dsPhotos=[], dsLimits=null;
 const DS_F=["#d1","#d2","#d3","#d4","#d7","#d8","#d9","#d10","#d11","#d12","#d13","#d14"];
 const DS_L=["핵심어","핵심 문장","핵심 질문","탐구 질문","배움 덩어리·차시 흐름","공개 차시-준비","공개 차시-탐구","공개 차시-정리·실천","공개 차시-성찰","평가요소·방법","성취수준","피드백·포용 전략"];
 const DS_RUB=[["unit","단원 설계 일관성",20,"핵심어(대상·관계 개념)·핵심 문장·핵심 질문이 성취기준·핵심 아이디어와 맞는가. 핵심 문장이 '~할 수 있다'(목표형)가 아니라 핵심어 간 관계를 진술한 명제형이고, '때문에 학생은 [성취기준]'으로 이어 읽어 자연스러운가. 핵심 질문이 정답이 하나가 아닌 큰 물음인가"],
@@ -1684,12 +1683,14 @@ const DS_RUB=[["unit","단원 설계 일관성",20,"핵심어(대상·관계 개
  ["eval","학습으로의 평가",20,"무엇을·왜(핵심 문장 이해 확인) 평가하는지 분명하고, 삶의 맥락 수행 과제(GRASPS: 역할·청중·상황·결과물·준거)로 전이를 확인하며, 관찰 가능한 4단계 성취수준·방법이 수업과 일관되는가"],
  ["incl","포용·피드백",10,"단계적 실마리·표현 방식 열어 두기·기다림 등 모든 학생의 참여 전략이 있는가"]];
 const stdOf=code=>STD.find(x=>x[0]===code);
-function dsKey(){return dsSrc==="case"?"case:"+DS_CASES[dsCase].id:(dsIdx!=null?"std:"+STD[dsIdx][0]:"")}
-function dsTitle(){if(dsSrc==="case"){const c=DS_CASES[dsCase];return `${c.g}학년 ${c.sj} · ${c.u.split(" — ")[0]}`}const x=STD[dsIdx];return x?`${x[0]} ${x[1]}`:""}
-function dsSetSrc(m){dsSrc=m;store.set("ds_src",m);$("#dsSrcCase").setAttribute("aria-pressed",m==="case");$("#dsSrcStd").setAttribute("aria-pressed",m==="std");
-  $("#dsCaseFilter").hidden=m!=="case";$("#dsStdFilter").hidden=m!=="std";$("#dsDraw").textContent=m==="case"?"다른 과제":"다른 성취기준 뽑기";
-  if(m==="case")dsShowCase(store.get("ds_case",0)); else {const dl=store.get("ds_last",null); if(dl!=null&&STD[dl])dsShowStd(dl); else dsDrawStd()}}
-function dsResetView(){$("#dsFb").hidden=true;$("#dsFb").innerHTML="";dsCurId=null;loadDraft()}
+function dsKey(){if(dsSrc==="free"){const t=$("#dsFreeText").value.trim();return "free:"+(t?t.split("\n")[0].slice(0,40):"내 단원")}return dsSrc==="case"?"case:"+DS_CASES[dsCase].id:(dsIdx!=null?"std:"+STD[dsIdx][0]:"")}
+function dsTitle(){if(dsSrc==="free"){const t=$("#dsFreeText").value.trim();return t?t.split("\n")[0].slice(0,60):"내 단원"}if(dsSrc==="case"){const c=DS_CASES[dsCase];return `${c.g}학년 ${c.sj} · ${c.u.split(" — ")[0]}`}const x=STD[dsIdx];return x?`${x[0]} ${x[1]}`:""}
+function dsSetSrc(m){dsSrc=m;store.set("ds_src",m);["Case","Std","Free"].forEach(k=>$("#dsSrc"+k).setAttribute("aria-pressed",m===k.toLowerCase()));
+  $("#dsCaseFilter").hidden=m!=="case";$("#dsStdFilter").hidden=m!=="std";$("#dsFreeBox").hidden=m!=="free";$("#dsDraw").hidden=m==="free";$("#dsDraw").textContent=m==="case"?"다른 과제":"다른 성취기준 뽑기";
+  if(m==="case")dsShowCase(store.get("ds_case",0)); else if(m==="std"){const dl=store.get("ds_last",null); if(dl!=null&&STD[dl])dsShowStd(dl); else dsDrawStd()} else dsShowFree()}
+function dsShowFree(){$("#dsArea").textContent="내 단원";$("#dsNo").textContent="";$("#dsText").textContent="내가 설계한 단원을 사진으로 올려 첨삭 받기";$("#dsPlace").textContent="";$("#dsRefs").innerHTML="";
+  $("#dsCtx").hidden=true;$("#dsCond").hidden=true;$("#dsExWrap").hidden=true;$("#dsFreeText").value=store.get("ds_free","");dsResetView()}
+function dsResetView(){$("#dsFb").hidden=true;$("#dsFb").innerHTML=""}
 function dsShowCase(i){
   dsCase=Math.max(0,Math.min(DS_CASES.length-1,+i||0)); store.set("ds_case",dsCase); const c=DS_CASES[dsCase];
   $("#dsCaseSel").value=String(dsCase);
@@ -1700,7 +1701,7 @@ function dsShowCase(i){
   if(c.stdx)pl.append(el("span","hint",c.stdx));
   $("#dsCtx").hidden=!c.ctx; $("#dsCtx").innerHTML=""; if(c.ctx)$("#dsCtx").append(el("b",null,"학급 상황"),document.createTextNode(c.ctx));
   $("#dsCond").hidden=false; $("#dsCondList").innerHTML=""; [`단원을 ${c.h}차시 안팎으로 설계하고, 그중 1차시를 공개 차시로 골라 과정안을 쓸 것`,...c.cond].forEach(x=>$("#dsCondList").append(el("li",null,x)));
-  $("#dsRefs").innerHTML=""; $("#dsLessonNo").textContent="(공개할 차시 하나)";
+  $("#dsRefs").innerHTML="";
   $("#dsExWrap").hidden=false; $("#dsExSrc").textContent="· "+c.src; $("#dsEx").hidden=true; $("#dsExBtn").textContent="원 수업안 보기"; renderEx(c);
   dsResetView();
 }
@@ -1715,90 +1716,102 @@ function dsShowStd(i){
   const t=$("#dsText"); t.textContent=""; t.append(el("span","std-code",x[0]),document.createTextNode(x[1]));
   const pl=$("#dsPlace"); pl.textContent=""; pl.append(el("b",null,"우리 학교 배치 "),document.createTextNode(x[4].map(q=>`${q[0]}학년 ${q[1]}학기 ${q[2]}`).join(" / ")));
   const c=$("#dsRefs"); c.innerHTML=""; x[5].forEach(r=>c.append(el("span","chip","★ "+r)));
-  $("#dsCtx").hidden=true; $("#dsCond").hidden=true; $("#dsExWrap").hidden=true; $("#dsLessonNo").textContent="";
+  $("#dsCtx").hidden=true; $("#dsCond").hidden=true; $("#dsExWrap").hidden=true;
   dsResetView();
 }
 function dsDrawStd(){const p=dsPool();if(!p.length){$("#dsText").textContent="조건에 맞는 성취기준이 없어요. 필터를 바꿔 보세요.";dsIdx=null;return}
   const c=p.filter(i=>i!==dsIdx);dsShowStd((c.length?c:p)[Math.floor(Math.random()*(c.length||p.length))])}
-function dsDraw(){if(dsSrc==="case")dsShowCase((dsCase+1)%DS_CASES.length); else dsDrawStd()}
-/* 초안 자동 보관(이 브라우저) */
-function dsFields(){const o={};DS_F.forEach(s=>o[s.slice(1)]=$(s).value);return o}
-function dsFill(f){f=dsLegacy(f);DS_F.forEach(s=>$(s).value=(f&&f[s.slice(1)])||"")}
+function dsDraw(){if(dsSrc==="case")dsShowCase((dsCase+1)%DS_CASES.length); else if(dsSrc==="std")dsDrawStd()}
 /* 예전 기록의 탐구 질문 3칸(d4·d5·d6)을 한 칸으로 합침 */
 function dsLegacy(f){if(!f||!(f.d5||f.d6))return f;const o={...f};o.d4=[f.d4,f.d5,f.d6].filter(v=>v&&v.trim()).join("\n");delete o.d5;delete o.d6;return o}
-let draftT=null;
-function saveDraft(){clearTimeout(draftT);draftT=setTimeout(()=>{const k=dsKey();if(k)store.set("ds_draft:"+k,dsFields())},600)}
-function loadDraft(){const k=dsKey();dsFill(k?store.get("ds_draft:"+k,null):null)}
 function dsTimerReset(){if(dsTimerId){clearInterval(dsTimerId);dsTimerId=null}const s=+$("#dsTime").value;$("#dsTimer").textContent=s?fmt(s):"—";$("#dsTimer").className="timer";$("#dsTimer").style.fontSize="1.6rem";$("#dsStart").disabled=!s;$("#dsStart").textContent="타이머 시작"}
 function dsStart(){const s=+$("#dsTime").value;if(!s)return;const end=Date.now()+s*1000;beep(990,.12);$("#dsStart").textContent="진행 중";$("#dsStart").disabled=true;
   dsTimerId=setInterval(()=>{const left=(end-Date.now())/1000;$("#dsTimer").textContent=fmt(left>0?Math.ceil(left):left);$("#dsTimer").classList.toggle("low",left>0&&left<=60);$("#dsTimer").classList.toggle("over",left<=0);if(left<=0&&left>-0.3)beep(660,.35)},250)}
-/* 저장 */
+/* 사진 */
+async function dsShrink(f){
+  const max=dsLimits?.images?.maxInputBytes||5e6;
+  if(f.size<=max&&f.size<=4e6)return f;
+  try{const bmp=await createImageBitmap(f);const s=Math.min(1,2400/Math.max(bmp.width,bmp.height));const c=document.createElement("canvas");c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    for(const q of [.85,.72,.6]){const b=await new Promise(r=>c.toBlob(r,"image/jpeg",q));if(b&&b.size<=max)return b}}catch(e){}
+  return f}
+async function dsAddPhotos(list){
+  const cap=dsLimits?.images?.maxCount||5; const types=dsLimits?.images?.mediaTypes||["image/jpeg","image/png","image/webp","image/gif"];
+  let skipped=0;
+  for(const f of [...list]){if(dsPhotos.length>=cap){skipped++;continue}
+    if(!types.includes(f.type)&&!/^image\//.test(f.type)){skipped++;continue}
+    const b=await dsShrink(f); dsPhotos.push({blob:b,url:URL.createObjectURL(b)})}
+  dsRenderPhotos(); if(skipped)$("#dsPhNote").textContent=`${skipped}장은 넣지 못했어요(한 번에 ${cap}장까지, 사진 파일만).`}
+function dsRenderPhotos(){
+  const box=$("#dsThumbs"); box.innerHTML="";
+  dsPhotos.forEach((p,i)=>{const d=el("div","thumb");const im=el("img");im.src=p.url;im.alt=`설계 사진 ${i+1}쪽`;const x=el("button",null,"×");x.type="button";x.setAttribute("aria-label",`${i+1}쪽 빼기`);
+    x.onclick=()=>{URL.revokeObjectURL(p.url);dsPhotos.splice(i,1);dsRenderPhotos()};d.append(im,x,el("span",null,(i+1)+"쪽"));box.append(d)});
+  $("#dsClearPh").hidden=!dsPhotos.length; $("#dsAi").disabled=!sample||!dsPhotos.length;
+  if(dsLimits?.images&&!dsPhotos.length)$("#dsPhNote").textContent=`한 번에 ${dsLimits.images.maxCount}장까지`}
 async function putDesign(rec){if(dsCol){await dsCol.doc(rec.id).set(rec)}else{const k=designs.findIndex(a=>a.id===rec.id);if(k>=0)designs[k]=rec;else designs.unshift(rec);store.set("ds_designs",designs.slice(0,200));renderDesigns()}}
-function dsRecord(extra){const rec={id:dsCurId||newId(),key:dsKey(),title:dsTitle(),src:dsSrc,d:new Date().toISOString().slice(0,10),ts:Date.now(),fields:dsFields(),ai:null,...(extra||{})};dsCurId=rec.id;return rec}
-async function dsSave(){const k=dsKey();if(!k)return;const ex=designs.find(a=>a.id===dsCurId);const rec=dsRecord(ex&&ex.ai!=null?{}:{});
-  if(ex&&ex.ai!=null){rec.id=newId();dsCurId=rec.id}
-  try{await putDesign(rec);$("#dsNote").textContent="저장했어요 · 설계 기록에서 다시 열 수 있어요."}catch(e){$("#dsNote").textContent="저장하지 못했어요."}}
-/* 채점 */
-function dsPrompt(){
-  const f=dsFields(); const plan=DS_F.map((s,k)=>`${DS_L[k]}: ${f[s.slice(1)].trim()||"(비어 있음)"}`).join("\n");
-  let task="";
+/* 첨삭 */
+function dsTask(){
   if(dsSrc==="case"){const c=DS_CASES[dsCase];
-    task=`[과제] ${c.g}학년 ${c.sj} · ${c.u} (${c.h}차시 안팎)
+    return `[과제] ${c.g}학년 ${c.sj} · ${c.u} (${c.h}차시 안팎)
 [성취기준] ${c.std.map(code=>{const x=stdOf(code);return code+" "+(x?x[1]:"")}).join(" / ")} ${c.stdx||""}
 [학급 상황] ${c.ctx}
 [설계 조건] ${c.cond.join(" / ")}
 [이 사례에서 꼭 볼 지점(pts)]
 ${c.pts.map((t,i)=>`${i+1}. ${t}`).join("\n")}
-[참고: 원 수업안(깊수다·경기도교육청 예시자료) 요약 — 비교 설명(compare)에만 쓰고, 원안과 닮았는지로 점수를 매기지 마세요]
-핵심 질문: ${c.ex.kq} / 흐름: ${c.ex.chunks} / 공개 차시: ${c.ex.lesson} / 평가: ${c.ex.eval} / 성찰·컨설팅: ${c.ex.reflect}`;}
-  else{const x=STD[dsIdx];task=`[과제] 아래 성취기준으로 한 단원을 설계하고 공개 차시 1차시 과정안을 쓰기
+[참고: 원 수업안 요약 — 비교 설명(compare)에만 쓰고, 원안과 닮았는지로 점수를 매기지 마세요]
+핵심 질문: ${c.ex.kq} / 흐름: ${c.ex.chunks} / 공개 차시: ${c.ex.lesson} / 평가: ${c.ex.eval} / 성찰·컨설팅: ${c.ex.reflect}`}
+  if(dsSrc==="std"&&dsIdx!=null){const x=STD[dsIdx];return `[과제] 아래 성취기준으로 한 단원을 설계하고 공개 차시 1차시 과정안을 쓰기
 [성취기준] ${x[0]} ${x[1]} (${x[2]} · ${x[3]})
 [우리 학교 배치] ${x[4].map(p=>`${p[0]}학년 ${p[1]}학기 ${p[2]}`).join(" / ")}`}
-  return `당신은 경기도 초등 수석교사 선발 2차 심사의 '수업 및 평가 설계' 심사위원이자 수업 컨설턴트입니다. 경기도교육청 웹진 「깊수다」의 깊이있는 수업 설계 틀(단원 설계표: 핵심어–핵심 문장–핵심 질문–탐구 질문, 배움 덩어리, 공개 차시 준비–탐구–정리·실천–성찰, 학습으로의 평가: 평가요소–성취수준–방법, 징검다리평가·전이 평가)에 비추어 응시자(경력 25년 초등 교사)의 설계 초안을 채점하세요.
-${task}
-
-[응시자 설계 초안]
-${plan}
-
+  const t=$("#dsFreeText").value.trim();
+  return `[과제] 응시자가 직접 고른 단원의 설계. ${t?"응시자가 적은 단원 정보: "+t:"단원 정보는 사진 속 내용에서 파악하세요."}`}
+function dsPrompt(n){
+  const memo=$("#dsMemo").value.trim();
+  return `당신은 경기도 초등 수석교사 선발 2차 심사의 '수업 및 평가 설계' 심사위원이자 수업 컨설턴트입니다. 함께 보내는 사진 ${n}장은 응시자(경력 25년 초등 교사)가 종이에 손으로 쓴 수업 설계(단원 설계표, 공개 차시 과정안, 평가 계획 등)입니다. 사진 순서가 쪽 순서입니다.
+1단계: 사진 속 손글씨를 읽어 항목별로 옮겨 적으세요(read). 읽기 어려운 글자는 [?]로 두고 unclear에 적으세요. 사진에 없는 내용을 지어내지 마세요.
+2단계: 경기도교육청 깊이있는 수업 프레임워크(교육과정 살펴보기: 핵심어–핵심 문장–핵심 질문, 주요 활동 유목화 / 학습으로의 평가: 무엇을·왜 평가, 수행 과제, 성취수준 / 차시 설계: 준비–탐구–정리–실천과 탐구 질문)와 깊수다의 설계 틀에 비추어 빨간펜으로 첨삭하고 채점하세요. 탐구 질문을 사실·개념·논쟁으로 나누라고 요구하지 마세요.
+${dsTask()}
+${memo?"[응시자가 덧붙인 말] "+memo+"\n":""}
 채점 항목(각 항목을 따로, 만점 이내 정수):
 ${DS_RUB.map(([k,l,m,d])=>`- ${k} (${l}) 0~${m}: ${d}`).join("\n")}
-기준: 비어 있는 칸이 속한 항목은 만점의 20% 이하. 용어만 있고 내용이 막연하면 만점의 40~50%. 구체적이고 서로 이어지면 75% 이상. 학년 발달 수준에 맞지 않으면 감점. 서로 다른 초안이면 점수도 분명히 달라야 합니다.
-pts가 있으면 각 지점을 0(없음)/1(부분)/2(분명함)로 판정하세요.
+기준: 사진에 없는 항목은 만점의 20% 이하. 용어만 있고 내용이 막연하면 40~50%. 구체적이고 서로 이어지면 75% 이상. 학년 발달 수준에 맞지 않으면 감점. pts가 있으면 각 지점을 0(없음)/1(부분)/2(분명함)로 판정하세요.
+첨삭(marks)은 응시자가 실제로 쓴 문장을 그대로 인용(orig)하고, 고친 표현(fix)과 이유(why, 1문장)를 다는 빨간펜입니다. 점수를 가장 많이 올릴 곳부터 5~8개.
 
 JSON만 출력하세요:
-{"unit":0,"iq":0,"flow":0,"lesson":0,"eval":0,"incl":0,"pts":[0],"good":"잘한 점 1문장","fixes":["가장 점수를 올릴 고칠 점 1문장","고칠 점 1문장","고칠 점 1문장"],"revised":{"핵심 문장":"…","핵심 질문":"…","탐구 질문":["…","…","…"],"공개 차시":"준비 → 탐구 → 정리·실천 → 성찰을 2~3문장으로","평가":"평가요소 · 성취수준(매우잘함 문장) · 방법"},"compare":"${dsSrc==="case"?"원 수업안과 비교해 원안에서 가져올 점 1~2문장":"빈 문자열"}"}`;
+{"read":"사진에서 읽은 내용을 '항목: 내용' 줄로 옮겨 적기(1500자 이내)","unclear":["읽기 어려웠던 부분"],"unit":0,"iq":0,"flow":0,"lesson":0,"eval":0,"incl":0,"pts":[0],"marks":[{"where":"핵심 문장","orig":"원문 그대로","fix":"고친 표현","why":"이유 1문장"}],"good":"잘한 점 1~2문장","fixes":["가장 점수를 올릴 고칠 점 1문장","고칠 점 1문장","고칠 점 1문장"],"revised":{"핵심 문장":"…","핵심 질문":"…","탐구 질문":["…","…","…"],"공개 차시":"준비 → 탐구 → 정리·실천 → 성찰을 2~3문장으로","평가":"평가요소 · 성취수준(매우잘함 문장) · 방법"},"compare":"${dsSrc==="case"?"원 수업안과 비교해 원안에서 가져올 점 1~2문장":"빈 문자열"}"}`;
 }
 function dsScore(r){const parts={};DS_RUB.forEach(([k,,m])=>parts[k]=Math.max(0,Math.min(m,Math.round(+r[k]||0))));return {total:Object.values(parts).reduce((a,b)=>a+b,0),parts}}
+function dsMarksView(marks){const ul=el("ul","marks");(marks||[]).forEach(m=>{const li=el("li");li.append(el("span","w",m.where||""));if(m.orig){li.append(el("del",null,m.orig),document.createElement("br"))}if(m.fix)li.append(el("ins",null,m.fix));if(m.why)li.append(el("span","hint",(m.fix?"  ":"")+"— "+m.why));ul.append(li)});return ul}
 function dsFbView(box,res,r,pts,prev){
   box.innerHTML="";
   const head=el("div","score",res.total+"점");if(prev!=null){head.append(el("span","hint",` · 이 과제 지난번 ${prev}점 대비 ${res.total-prev>=0?"+":""}${res.total-prev}`))}
   const pv=el("div","parts");pv.append(head);
   DS_RUB.forEach(([k,l,m])=>{const row=el("div","prow");const v=res.parts[k]??0;row.append(el("span","pl",l),Object.assign(el("span","pbar"),{innerHTML:`<i style="width:${Math.round(v/m*100)}%"></i>`}),el("span","pv",`${v}/${m}`));pv.append(row)});
   box.append(pv);
+  if(r.marks&&r.marks.length)box.append(el("p","sect-h","빨간펜 첨삭"),dsMarksView(r.marks));
   if(pts&&pts.length&&r.pts){const ul=el("ul","need");pts.forEach((t,i)=>{const v=Math.max(0,Math.min(2,+r.pts[i]||0));const li=el("li",null,["✗ ","△ ","○ "][v]+t);li.className="nv"+v;ul.append(li)});box.append(el("p","sect-h","이 사례에서 꼭 볼 지점"),ul)}
   const ul=el("ul");(r.fixes||[]).forEach(f=>ul.append(el("li",null,f)));
   const rv=r.revised||{}; const lines=[];
   if(rv["핵심 문장"])lines.push("핵심 문장 — "+rv["핵심 문장"]); if(rv["핵심 질문"])lines.push("핵심 질문 — "+rv["핵심 질문"]);
   (rv["탐구 질문"]||[]).forEach(t=>lines.push("탐구 질문 — "+t)); if(rv["공개 차시"])lines.push("공개 차시 — "+rv["공개 차시"]); if(rv["평가"])lines.push("평가 — "+rv["평가"]);
-  box.append(el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","고칠 점"),ul,el("p","sect-h","다듬은 설계 예시"),el("p","better",lines.join("\n")));
-  if(r.compare)box.append(el("p","sect-h","깊수다 원안과 비교"),el("p",null,r.compare));
+  box.append(el("p","sect-h","잘한 점"),el("p",null,r.good||""),el("p","sect-h","우선 고칠 점"),ul,el("p","sect-h","다듬은 설계 예시"),el("p","better",lines.join("\n")));
+  if(r.compare)box.append(el("p","sect-h","원 수업안과 비교"),el("p",null,r.compare));
+  if(r.read){const det=el("details");det.append(Object.assign(el("summary","sect-h","사진에서 읽은 내용"),{style:"cursor:pointer"}),el("p","said",r.read));if(r.unclear&&r.unclear.length)det.append(el("p","hint","읽기 어려웠던 부분: "+r.unclear.join(" / ")));box.append(det)}
 }
 async function dsGrade(){
-  if(!sample||!dsKey())return;
-  const fb=$("#dsFb"); fb.hidden=false; fb.innerHTML='<p class="pen">설계를 읽는 중…</p>'; $("#dsAi").disabled=true;
+  if(!sample||!dsPhotos.length)return;
+  const fb=$("#dsFb"); fb.hidden=false; fb.innerHTML='<p class="pen">손글씨를 읽고 첨삭하는 중…</p>'; $("#dsAi").disabled=true; $("#dsNote").textContent="";
   try{
-    const r=await sample.json(dsPrompt(),{modelTier:"default"});
-    const res=dsScore(r); const pts=dsSrc==="case"?DS_CASES[dsCase].pts:[];
-    const prev=designs.filter(a=>a.key===dsKey()&&a.ai!=null&&a.id!==dsCurId).sort((x,y)=>y.ts-x.ts)[0];
+    const r=await sample.json(dsPrompt(dsPhotos.length),{images:dsPhotos.map(p=>p.blob),modelTier:"complex"});
+    const res=dsScore(r); const pts=dsSrc==="case"?DS_CASES[dsCase].pts:[]; const key=dsKey();
+    const prev=designs.filter(a=>a.key===key&&a.ai!=null).sort((x,y)=>y.ts-x.ts)[0];
     dsFbView(fb,res,r,pts,prev?prev.ai:null);
-    const ex=designs.find(a=>a.id===dsCurId); if(ex&&ex.ai!=null)dsCurId=null;
-    const rec=dsRecord({ai:res.total,parts:res.parts,pts:r.pts||[],good:r.good||"",fixes:r.fixes||[],revised:r.revised||{},compare:r.compare||""});
-    putDesign(rec).catch(()=>{$("#dsNote").textContent="피드백을 저장하지 못했어요."});
-    dsCurId=null;
-  }catch(e){fb.innerHTML="";fb.append(el("p",null,errMsg(e)));if(e?.code==="not_granted")$("#dsAi").hidden=true}
-  finally{$("#dsAi").disabled=false}
+    const rec={id:newId(),key,title:dsTitle(),src:dsSrc,kind:"photo",pages:dsPhotos.length,d:new Date().toISOString().slice(0,10),ts:Date.now(),
+      read:String(r.read||"").slice(0,4000),unclear:r.unclear||[],memo:$("#dsMemo").value.trim(),ai:res.total,parts:res.parts,pts:r.pts||[],marks:(r.marks||[]).slice(0,10),good:r.good||"",fixes:r.fixes||[],revised:r.revised||{},compare:r.compare||""};
+    putDesign(rec).then(()=>{$("#dsNote").textContent="첨삭 기록에 저장했어요."}).catch(()=>{$("#dsNote").textContent="첨삭을 저장하지 못했어요."});
+  }catch(e){fb.innerHTML="";fb.append(el("p",null,e?.code==="images_unavailable"?"이 화면에서는 사진을 보낼 수 없어요.":e?.code==="image_rejected"?"사진 파일을 읽지 못했어요. JPG나 PNG로 다시 올려 주세요.":errMsg(e)))}
+  finally{$("#dsAi").disabled=!dsPhotos.length}
 }
-/* 설계 기록 */
+/* 첨삭 기록 */
 function renderDesigns(){
   const map=new Map(); designs.forEach(a=>{if(!map.has(a.key))map.set(a.key,{key:a.key,title:a.title,list:[]});map.get(a.key).list.push(a)});
   const groups=[...map.values()].map(g=>(g.list.sort((x,y)=>y.ts-x.ts),g)).sort((x,y)=>y.list[0].ts-x.list[0].ts);
@@ -1809,24 +1822,20 @@ function renderDesigns(){
     const meta=el("div","nmeta"); meta.append(el("span",null,`${g.list.length}건`),el("span",null,sc.length?`최고 ${Math.max(...sc)}점`:"채점 전"),el("span",null,"최근 "+g.list[0].d.slice(5).replace("-","/")));
     sm.append(meta,el("span","nq",g.title)); d.append(sm);
     const body=el("div","nbody");
-    g.list.forEach(a=>{const box=el("div","att");const h=el("div","att-h");h.append(el("span",null,a.d.slice(5).replace("-","/")),a.ai!=null?el("span","sc",a.ai+"점"):el("span",null,"임시 저장"));
-      const ld=el("button","linkbtn","불러와서 고치기");ld.type="button";ld.onclick=()=>dsLoad(a);const del=el("button","linkbtn","삭제");del.type="button";del.style.marginLeft="8px";del.onclick=()=>dsDel(a.id);h.append(ld,del);box.append(h);
+    g.list.forEach(a=>{const box=el("div","att");const h=el("div","att-h");h.append(el("span",null,a.d.slice(5).replace("-","/")+(a.kind==="photo"?` · 사진 ${a.pages}장`:" · 입력 설계")),a.ai!=null?el("span","sc",a.ai+"점"):el("span",null,"채점 전"));
+      const del=el("button","linkbtn","삭제");del.type="button";del.onclick=()=>dsDel(a.id);h.append(del);box.append(h);
       if(a.parts)box.append(el("p","hint",DS_RUB.map(([k,l,m])=>`${l} ${a.parts[k]??0}/${m}`).join(" · ")));
-      const det=el("details");det.append(Object.assign(el("summary","sect-h","내 설계 보기"),{style:"cursor:pointer"}));
-      const pre=el("p","said",DS_F.map((s,k)=>{const v=(dsLegacy(a.fields)||{})[s.slice(1)];return v?`${DS_L[k]}: ${v}`:""}).filter(Boolean).join("\n")||"(비어 있음)");det.append(pre);box.append(det);
-      if(a.fixes&&a.fixes.length){box.append(el("p","sect-h","고칠 점"));const ul=el("ul");a.fixes.forEach(f=>ul.append(el("li",null,f)));box.append(ul)}
-      if(a.compare)box.append(el("p",null,"깊수다 원안과 비교 — "+a.compare));
+      if(a.marks&&a.marks.length){box.append(el("p","sect-h","빨간펜 첨삭"),dsMarksView(a.marks))}
+      if(a.fixes&&a.fixes.length){box.append(el("p","sect-h","우선 고칠 점"));const ul=el("ul");a.fixes.forEach(f=>ul.append(el("li",null,f)));box.append(ul)}
+      const det=el("details");det.append(Object.assign(el("summary","sect-h",a.kind==="photo"?"사진에서 읽은 내 설계":"내 설계 보기"),{style:"cursor:pointer"}));
+      const txt=a.kind==="photo"?(a.read||"(없음)"):(DS_F.map((s,k)=>{const v=(dsLegacy(a.fields)||{})[s.slice(1)];return v?`${DS_L[k]}: ${v}`:""}).filter(Boolean).join("\n")||"(비어 있음)");
+      det.append(el("p","said",txt));box.append(det);
+      if(a.compare)box.append(el("p",null,"원 수업안과 비교 — "+a.compare));
       body.append(box)});
     d.append(body); box.append(d);
   });
 }
-function dsLoad(a){
-  const [src,id]=a.key.split(/:(.+)/);
-  if(src==="case"){dsSetSrc("case");const i=DS_CASES.findIndex(c=>c.id===id);if(i>=0)dsShowCase(i)}
-  else{dsSetSrc("std");const i=STD.findIndex(x=>x[0]===id);if(i>=0)dsShowStd(i)}
-  dsFill(a.fields); dsCurId=a.ai==null?a.id:null; window.scrollTo({top:0,behavior:"smooth"});
-}
-async function dsDel(id){if(!confirm("이 설계 기록을 지울까요?"))return;if(dsCol){try{await dsCol.doc(id).delete()}catch(e){}}else{designs=designs.filter(a=>a.id!==id);store.set("ds_designs",designs);renderDesigns()}}
+async function dsDel(id){if(!confirm("이 첨삭 기록을 지울까요?"))return;if(dsCol){try{await dsCol.doc(id).delete()}catch(e){}}else{designs=designs.filter(a=>a.id!==id);store.set("ds_designs",designs);renderDesigns()}}
 async function initDesigns(db,uid){
   designs=store.get("ds_designs",[]); renderDesigns(); $("#dsSync").textContent="· 이 브라우저에만 저장";
   if(!db||!uid)return;
@@ -1842,7 +1851,7 @@ function setMode(m){
   mode=m; store.set("iv_mode",m);
   $("#ivView").hidden=m!=="iv"; $("#dsView").hidden=m!=="ds";
   $("#modeIv").setAttribute("aria-pressed",m==="iv"); $("#modeDs").setAttribute("aria-pressed",m==="ds");
-  $("#subLine").textContent=m==="iv"?"문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인":"깊수다·경기도 예시 수업안 과제로 단원 설계표·공개 차시·학습으로의 평가를 설계하고 피드백 받기";
+  $("#subLine").textContent=m==="iv"?"문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인":"손으로 쓴 수업 설계를 사진으로 올리면 → 글씨 옮겨 적기 → 빨간펜 첨삭 → 100점 채점";
   if(m==="iv")stop(); renderHist();
 }
 
@@ -1863,20 +1872,22 @@ $("#modeIv").onclick=()=>setMode("iv"); $("#modeDs").onclick=()=>setMode("ds");
 ["#fGrade","#fSubj","#fRef"].forEach(s=>$(s).onchange=dsDrawStd);
 DS_CASES.forEach((c,i)=>{const o=el("option",null,`${c.g}학년 ${c.sj} — ${c.u.split(" — ").pop()}`);o.value=String(i);$("#dsCaseSel").append(o)});
 $("#dsCaseSel").onchange=e=>dsShowCase(e.target.value);
-$("#dsSrcCase").onclick=()=>dsSetSrc("case"); $("#dsSrcStd").onclick=()=>dsSetSrc("std");
+$("#dsSrcCase").onclick=()=>dsSetSrc("case"); $("#dsSrcStd").onclick=()=>dsSetSrc("std"); $("#dsSrcFree").onclick=()=>dsSetSrc("free"); $("#dsFreeText").oninput=e=>store.set("ds_free",e.target.value);
 $("#dsDraw").onclick=dsDraw; $("#dsTime").onchange=dsTimerReset; $("#dsStart").onclick=dsStart;
-$("#dsAi").onclick=dsGrade; $("#dsSave").onclick=dsSave;
+$("#dsAi").onclick=dsGrade; $("#dsPick").onclick=()=>$("#dsFile").click(); $("#dsFile").onchange=e=>{dsAddPhotos(e.target.files);e.target.value=""}; $("#dsClearPh").onclick=()=>{dsPhotos.forEach(p=>URL.revokeObjectURL(p.url));dsPhotos=[];dsRenderPhotos()};
 $("#dsExBtn").onclick=()=>{const b=$("#dsEx");b.hidden=!b.hidden;$("#dsExBtn").textContent=b.hidden?"원 수업안 보기":"원 수업안 접기"};
-DS_F.forEach(s=>$(s).addEventListener("input",saveDraft));
 DS_RUB.forEach(([k,l,m,d])=>$("#dsRubList").append(el("li",null,`${l} ${m}점 — ${d}`)));
-$("#dsClear").onclick=()=>{if(!confirm("지금 쓴 설계를 지울까요?"))return;DS_F.forEach(s=>$(s).value="");$("#dsFb").hidden=true;dsCurId=null;const k=dsKey();if(k)store.set("ds_draft:"+k,null)};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&timerId&&!wake)lock()});
 
 if(!AREAS.includes(area)&&area!=="all")area="all";
 const last=store.get("iv_last",3); idx=(Q[last]&&(area==="all"||Q[last].a===area))?last:pool()[0].i;
 show(idx);
-dsSetSrc(dsSrc==="std"?"std":"case");
+dsSetSrc(["std","free"].includes(dsSrc)?dsSrc:"case");
 dsTimerReset(); setMode(mode==="ds"?"ds":"iv"); initAnswers();
 (async()=>{try{sample=await window.claude?.use?.("sample")}catch(e){sample=null}
-  if(sample){$("#aiRow").hidden=false;$("#dsAi").hidden=false}else{$("#dsNote").textContent="AI 피드백을 쓸 수 없는 환경이에요. 점검표로 스스로 확인해 보세요."}})();
+  if(sample){$("#aiRow").hidden=false;dsLimits=await sample.limits().catch(()=>null);
+    if(dsLimits?.images){$("#dsFile").accept=dsLimits.images.mediaTypes.join(",");$("#dsPhNote").textContent=`한 번에 ${dsLimits.images.maxCount}장까지`}
+    else{$("#dsPick").disabled=true;$("#dsNote").textContent="이 화면에서는 사진을 Claude에게 보낼 수 없어요."}
+    dsRenderPhotos()}
+  else{$("#dsPick").disabled=true;$("#dsNote").textContent="첨삭을 쓸 수 없는 환경이에요(claude.ai에서 열어 주세요)."}})();
 </script>
