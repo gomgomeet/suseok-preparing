@@ -152,6 +152,24 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 .nbody{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .model{background:var(--sage-soft);border-left:3px solid var(--sage);border-radius:0 4px 4px 0;padding:12px 14px}
 .model .better{font-family:var(--f-q);font-size:.98rem;line-height:1.75;white-space:pre-wrap;margin:4px 0 0}
+.sheet-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:.82rem;color:var(--muted);padding:8px 0}
+.sheet{display:flex;flex-direction:column;gap:14px}
+.sh-card{border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;break-inside:avoid-page}
+.sh-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)}
+.sh-no{font-family:var(--f-num);font-weight:700;color:var(--pen)}
+.sh-q{font-family:var(--f-q);font-size:1rem;line-height:1.55;margin:0 0 4px}
+.sh-mine{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:.88rem}
+.sh-mine .sh-d{font-family:var(--f-num);font-size:.76rem;color:var(--muted)}
+.sh-mine .said{white-space:pre-wrap;margin:2px 0 0}
+.sh-fixed{margin-top:6px;border-top:2px solid var(--pen);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.sh-fixed .better{font-family:var(--f-q);white-space:pre-wrap;margin:0;line-height:1.75}
+.sh-fixes{margin:0;padding-left:18px;font-size:.84rem;color:var(--muted)}
+@media print{
+  body.print-sheet *{visibility:hidden}
+  body.print-sheet #sheetView,body.print-sheet #sheetView *{visibility:visible}
+  body.print-sheet #sheetView{position:absolute;left:0;top:0;width:100%}
+  body.print-sheet .sh-card{border-color:#999}
+}
 .att{border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:6px}
 .att-h{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-family:var(--f-num);font-size:.78rem;color:var(--muted)}
 .att-h .sc{font-family:var(--f-pen);font-size:1.3rem;color:var(--pen)}
@@ -299,6 +317,7 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
       <button type="button" class="tab" data-f="weak" aria-pressed="false">70점 미만 (약점)</button>
       <button type="button" class="tab" data-f="nograde" aria-pressed="false">채점 전</button>
       <button type="button" class="tab" data-f="review" aria-pressed="false">복습 순서</button>
+      <button type="button" class="tab" data-f="sheet" aria-pressed="false">답변 정리</button>
       <button type="button" class="btn primary" id="reviewGo" style="padding:5px 12px;font-size:.82rem">복습 시작</button>
       <span class="sync" id="syncNote"></span>
     </div>
@@ -1392,6 +1411,7 @@ function reviewGo(){const gs=reviewOrder(groupByQ().filter(g=>g.k>=0&&(best(g.li
 function renderNotes(){
   const groups=groupByQ();
   $("#noteCount").textContent=answers.length?`${groups.length}문항 · ${answers.length}회`:"";
+  if(noteFilter==="sheet"){renderSheet(groups);renderPast();return}
   let shown=groups.filter(g=>{const b=best(g.list);return noteFilter==="all"||noteFilter==="review"||(noteFilter==="weak"?(b!=null&&b<70):g.list.every(a=>a.ai==null))});
   if(noteFilter==="review")shown=reviewOrder(shown);
   const box=$("#noteList");box.innerHTML="";
@@ -1410,6 +1430,48 @@ function renderNotes(){
     d.append(body);box.append(d);
   });
   renderPast();
+}
+/* 답변 정리: 문항별로 내가 한 답을 모두 펼쳐 보이고, 맨 아래에 고친 답 */
+function renderSheet(groups){
+  const box=$("#noteList");box.innerHTML="";
+  $("#noteEmpty").hidden=groups.length>0;
+  if(!groups.length)return;
+  const bar=el("div","sheet-bar");
+  const nBetter=groups.filter(g=>g.list.some(a=>a.better)).length;
+  bar.append(el("span",null,`${groups.length}문항 · 내 답변 ${answers.length}회 · 고친 답 ${nBetter}문항`));
+  const pr=el("button","btn","인쇄 · PDF로 저장");pr.type="button";
+  pr.onclick=()=>{document.body.classList.add("print-sheet");$("#noteBox").open=true;
+    const done=()=>{document.body.classList.remove("print-sheet");window.removeEventListener("afterprint",done)};
+    window.addEventListener("afterprint",done);try{window.print()}catch(e){done()}setTimeout(done,60000)};
+  bar.append(pr);box.append(bar);
+  const sheet=el("div","sheet");sheet.id="sheetView";
+  const order=[...groups].sort((x,y)=>(x.k<0)-(y.k<0)||x.k-y.k);
+  order.forEach((g,n)=>{
+    const card=el("section","sh-card");
+    const top=el("div","sh-top");
+    const b=best(g.list);
+    top.append(el("span","sh-no",String(n+1).padStart(2,"0")),el("span","area",g.a||""),el("span","sh-meta",`${g.list.length}회 연습 · ${b!=null?"최고 "+b+"점":"채점 전"}`));
+    card.append(top,el("p","sh-q",g.qt));
+    card.append(el("p","sect-h","내가 한 답변"));
+    const ol=el("ol","sh-mine");
+    [...g.list].sort((x,y)=>x.ts-y.ts).forEach(a=>{
+      const li=el("li");
+      const sc=scoreOf(a);
+      li.append(el("span","sh-d",`${a.d.slice(5).replace("-","/")} · ${sc!=null?sc+"점":"채점 전"}`));
+      const memo=(a.memo||[]).map((v,k)=>v?["결론","근거","경험","확산"][k]+": "+v:"").filter(Boolean).join("\n");
+      li.append(el("p","said",a.said||(memo?"(받아쓰기 없음 · 구상 메모)\n"+memo:"(기록 없음)")));
+      ol.append(li)});
+    card.append(ol);
+    const fixed=g.list.filter(a=>a.better).sort((x,y)=>(scoreOf(y)-scoreOf(x))||(y.ts-x.ts))[0];
+    const fx=el("div","sh-fixed");
+    if(fixed){
+      fx.append(el("p","sect-h",`고친 답 (${fixed.d.slice(5).replace("-","/")} · ${scoreOf(fixed)}점 답을 고친 것)`));
+      if(fixed.fixes&&fixed.fixes.length){const ul=el("ul","sh-fixes");fixed.fixes.forEach(f=>ul.append(el("li",null,f)));fx.append(ul)}
+      fx.append(el("p","better",fixed.better));
+    }else fx.append(el("p","hint","아직 고친 답이 없어요. 이 문항에서 빨간펜 채점을 받으면 여기에 고친 답이 생깁니다."));
+    card.append(fx);sheet.append(card);
+  });
+  box.append(sheet);
 }
 function renderPast(){
   const list=answers.filter(a=>qIndexOf(a)===idx).sort((x,y)=>y.ts-x.ts);
