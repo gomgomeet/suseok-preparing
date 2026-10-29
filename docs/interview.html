@@ -199,7 +199,7 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
   <header>
     <div>
       <h1>심층면접 연습실</h1>
-      <p class="sub" id="subLine">문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인</p>
+      <p class="sub" id="subLine">문제 보기 → 3분 구상 메모 → 3분 구술 답변 → 채점과 근거 확인</p>
     </div>
     <span class="score-chip" id="todayChip">오늘 0문항</span>
   </header>
@@ -235,10 +235,10 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 
   <section class="panel" id="p1">
     <div class="timer-row">
-      <div class="timer" id="t1">1:00</div>
+      <div class="timer" id="t1">3:00</div>
       <div class="settings">
-        <label>구상 시간 <select id="prepSel"><option value="30">30초</option><option value="60" selected>1분</option><option value="90">1분 30초</option><option value="120">2분</option></select></label>
-        <label>답변 시간 <select id="ansSel"><option value="90">1분 30초</option><option value="120" selected>2분</option><option value="150">2분 30초</option></select></label>
+        <label>구상 시간 <select id="prepSel"><option value="30">30초</option><option value="60">1분</option><option value="90">1분 30초</option><option value="120">2분</option><option value="180" selected>3분</option></select></label>
+        <label>답변 시간 <select id="ansSel"><option value="90">1분 30초</option><option value="120">2분</option><option value="150">2분 30초</option><option value="180" selected>3분</option></select></label>
       </div>
     </div>
     <div class="bar" id="b1"><i></i></div>
@@ -258,14 +258,14 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 
   <section class="panel" id="p2" hidden>
     <div class="timer-row">
-      <div class="timer" id="t2">2:00</div>
+      <div class="timer" id="t2">3:00</div>
       <div class="qactions"><button class="btn pen" id="stopAns">답변 끝</button></div>
     </div>
     <div class="bar" id="b2"><i></i></div>
     <div class="cues" id="cues"></div>
     <label for="transcript" class="sect-h">말한 내용 받아쓰기 (선택, AI 채점에 사용)</label>
     <textarea id="transcript" rows="6" placeholder="소리 내어 말하면서 음성 입력을 켜 두세요. 받아쓴 글이 여기에 쌓입니다."></textarea>
-    <p class="hint"><strong style="color:var(--pen)">답변이 시작되면 커서가 자동으로 이 칸에 들어갑니다.</strong> 바로 <kbd>Win</kbd> + <kbd>H</kbd>(휴대폰은 키보드 마이크 버튼)를 누르고 말하세요. 한 번 켜 두면 2분 동안 계속 받아씁니다.</p>
+    <p class="hint"><strong style="color:var(--pen)">답변이 시작되면 커서가 자동으로 이 칸에 들어갑니다.</strong> 바로 <kbd>Win</kbd> + <kbd>H</kbd>(휴대폰은 키보드 마이크 버튼)를 누르고 말하세요. 한 번 켜 두면 답변 시간 동안 계속 받아씁니다.</p>
   </section>
 
   <section class="panel" id="p3" hidden>
@@ -1659,7 +1659,7 @@ B. structure 0~10: 첫 문장에 질문에 대한 결론이 있는가(4), 결론
 C. basis 0~15: 법령·절차·교육과정·정책 근거가 정확하고 적절한가. 법적 절차가 필요한 상황(학교폭력·아동학대·자살 위기·교육활동 침해 등)에서 절차가 빠지면 최대 6. 근거 없음 3 이하, 정확한 근거 1개 9 안팎, 2개 이상 정확하고 상황에 딱 맞으면 13~15
 D. experience 0~15: 본인 경험. 없음 0~3, '경험이 있다' 수준 6, 언제·어떤 상황·무엇을 했는지 장면이 보이면 10~12, 결과와 배운 점까지 15
 E. action 0~15: 실천이 누가·언제·무엇을로 구체적이고 수석교사로서 동료·학교로 확산하며 계획서와 일관되는가. '노력하겠다' 수준 3~5, 방법 1~2개 8~10, 단계·일정·확인 방법까지 13~15
-F. delivery 0~5: 답변 시간 ${Math.round(usedS)}초 / 제한 ${limS}초. 90~130초면 5, 60~89초나 131~150초면 3, 그 밖은 1. 받아쓰기가 비면 메모 분량으로 판단
+F. delivery 0~5: 답변 시간 ${Math.round(usedS)}초 / 제한 ${limS}초. 제한 시간의 75~105%를 쓰면 5, 50~74%나 106~125%면 3, 그 밖은 1. 받아쓰기가 비면 메모 분량으로 판단
 감점 요소(해당하면 deduct에 그대로 적기, 각 -5): ${(q.x||[]).join(" / ")||"(없음)"}
 
 보정 기준(이 범위를 지키세요): 결론 있음 + 필수 요소 2개 언급 + 경험 없음 + 실천 막연 → 총점 50 안팎. 필수 요소 3~4개 구체 + 정확한 근거 1개 + 경험 장면 + 실천 구체 → 75 안팎. 필수 요소 대부분 구체 + 절차 정확 + 경험의 결과까지 + 단계별 실천 → 88 이상. 서로 다른 답이면 점수도 분명히 달라야 합니다.
@@ -1676,7 +1676,7 @@ ${memo}
 ${said||"(받아쓰기 없음. 구상 메모만으로 채점하고, 그 사실을 fixes에 짧게 언급)"}
 
 JSON만 출력하세요:
-{"need":[각 필수 요소 점수 0|1|2 를 순서대로],"structure":0~10,"basis":0~15,"experience":0~15,"action":0~15,"delivery":0~5,"deduct":["해당 감점 요소"],"good":"잘한 점 1문장","fixes":["가장 점수를 올릴 고칠 점 1문장","고칠 점 1문장"],"better":"응시자 답을 살려 고친 2분 구술 답변. 4~6문장, 말하는 문체, 결론은 '~하겠습니다'. 빠진 필수 요소를 채우고, 경험은 위 계획서상 경험 중 맞는 것을 골라 [내 경험: ○○ — 구체 장면] 자리표시로(지어내지 말 것)"}`;
+{"need":[각 필수 요소 점수 0|1|2 를 순서대로],"structure":0~10,"basis":0~15,"experience":0~15,"action":0~15,"delivery":0~5,"deduct":["해당 감점 요소"],"good":"잘한 점 1문장","fixes":["가장 점수를 올릴 고칠 점 1문장","고칠 점 1문장"],"better":"응시자 답을 살려 고친 ${Math.max(1,Math.round(limS/60))}분 구술 답변. ${limS>=170?"7~9문장":"4~6문장"}, 말하는 문체, 결론은 '~하겠습니다'. 빠진 필수 요소를 채우고, 경험은 위 계획서상 경험 중 맞는 것을 골라 [내 경험: ○○ — 구체 장면] 자리표시로(지어내지 말 것)"}`;
 }
 function scoreFrom(q,r){
   const nl=(q.n||q.k).length; const nv=(Array.isArray(r.need)?r.need:[]).slice(0,nl).map(v=>Math.max(0,Math.min(2,+v||0)));
@@ -2027,7 +2027,7 @@ function setMode(m){
   mode=m; store.set("iv_mode",m);
   $("#ivView").hidden=m!=="iv"; $("#dsView").hidden=m!=="ds";
   $("#modeIv").setAttribute("aria-pressed",m==="iv"); $("#modeDs").setAttribute("aria-pressed",m==="ds");
-  $("#subLine").textContent=m==="iv"?"문제 보기 → 1분 구상 메모 → 2분 구술 답변 → 채점과 근거 확인":"손으로 쓴 수업 설계를 사진으로 올리면 → 글씨 옮겨 적기 → 빨간펜 첨삭 → 100점 채점";
+  $("#subLine").textContent=m==="iv"?"문제 보기 → 3분 구상 메모 → 3분 구술 답변 → 채점과 근거 확인":"손으로 쓴 수업 설계를 사진으로 올리면 → 글씨 옮겨 적기 → 빨간펜 첨삭 → 100점 채점";
   if(m==="iv")stop(); renderHist();
 }
 
