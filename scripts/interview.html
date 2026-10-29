@@ -164,11 +164,16 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
 .sh-fixed{margin-top:6px;border-top:2px solid var(--pen);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .sh-fixed .better{font-family:var(--f-q);white-space:pre-wrap;margin:0;line-height:1.75}
 .sh-fixes{margin:0;padding-left:18px;font-size:.84rem;color:var(--muted)}
+.sh-model{margin-top:6px;border-top:2px solid var(--sage);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.sh-model .better{font-family:var(--f-q);white-space:pre-wrap;margin:0;line-height:1.75}
+.sh-hide{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 @media print{
   body.print-sheet *{visibility:hidden}
   body.print-sheet #sheetView,body.print-sheet #sheetView *{visibility:visible}
   body.print-sheet #sheetView{position:absolute;left:0;top:0;width:100%}
   body.print-sheet .sh-card{border-color:#999}
+  body.print-sheet .sh-hide>button{display:none}
+  body.print-sheet .sh-hide>[hidden]{display:flex!important}
 }
 .att{border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:6px}
 .att-h{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-family:var(--f-num);font-size:.78rem;color:var(--muted)}
@@ -322,7 +327,7 @@ kbd{font-family:var(--f-num);font-size:.78rem;border:1px solid var(--line);borde
       <span class="sync" id="syncNote"></span>
     </div>
     <div id="noteList"></div>
-    <p class="empty" id="noteEmpty">아직 저장된 답변이 없어요. '답변 끝'을 누르면 말한 내용과 메모가, 빨간펜 채점을 받으면 고친 답이 여기에 문항별로 쌓입니다.</p>
+    <p class="empty" id="noteEmpty">아직 저장된 답변이 없어요. '답변 끝'을 누르면 말한 내용과 메모가, 빨간펜 채점을 받으면 고친 답이, 그리고 문항의 예시 답안이 여기에 문항별로 쌓입니다.</p>
   </details>
 
   <details class="history" id="histBox">
@@ -1355,7 +1360,7 @@ async function putAtt(rec){
 function recordAttempt(){
   const q=Q[idx];
   const rec={id:newId(),q:idx,qt:q.t,qc:q.c||"",a:q.a,d:new Date().toISOString().slice(0,10),ts:Date.now(),used:Math.round(used),lim:total,
-    memo:["#m1","#m2","#m3","#m4"].map(s=>$(s).value.trim()),said:$("#transcript").value.trim(),fq:q.f||"",fa:"",ai:null,good:"",fixes:[],better:"",follow:""};
+    memo:["#m1","#m2","#m3","#m4"].map(s=>$(s).value.trim()),said:$("#transcript").value.trim(),fq:q.f||"",fa:"",ai:null,good:"",fixes:[],better:"",follow:"",model:q.m||""};
   curAtt=rec; curWrite=putAtt(rec).catch(()=>{$("#syncNote").textContent="저장하지 못했어요. 연결을 확인해 주세요."});
 }
 async function gradeAttempt(res,r){
@@ -1390,9 +1395,9 @@ function attView(a){
 function modelView(list){
   const g=list.filter(a=>a.better).sort((x,y)=>(scoreOf(y)-scoreOf(x))||(y.ts-x.ts))[0];
   if(!g)return null;
-  const m=el("div","model");m.append(el("p","sect-h",`예시 답변 (${g.d.slice(5).replace("-","/")} · ${scoreOf(g)}점 답을 고친 것) — 먼저 내 답을 떠올린 뒤 펼쳐 보세요`));
-  const bt=el("p","better",g.better);bt.hidden=true;const sb=el("button","btn","예시 답변 보기");sb.type="button";sb.style.alignSelf="flex-start";sb.style.marginTop="6px";
-  sb.onclick=()=>{bt.hidden=!bt.hidden;sb.textContent=bt.hidden?"예시 답변 보기":"예시 답변 접기"};m.append(sb,bt);
+  const m=el("div","model");m.append(el("p","sect-h",`가장 잘 고친 답 (${g.d.slice(5).replace("-","/")} · ${scoreOf(g)}점 답을 고친 것) — 먼저 내 답을 떠올린 뒤 펼쳐 보세요`));
+  const bt=el("p","better",g.better);bt.hidden=true;const sb=el("button","btn","고친 답 보기");sb.type="button";sb.style.alignSelf="flex-start";sb.style.marginTop="6px";
+  sb.onclick=()=>{bt.hidden=!bt.hidden;sb.textContent=bt.hidden?"고친 답 보기":"고친 답 접기"};m.append(sb,bt);
   return m;
 }
 function groupByQ(){
@@ -1426,12 +1431,22 @@ function renderNotes(){
     if(g.k>=0){const go=el("button","btn primary","이 문항 다시 연습");go.type="button";go.style.alignSelf="flex-start";
       go.onclick=()=>{setMode("iv");if(!(area==="all"||Q[g.k].a===area)){area="all";store.set("iv_area",area);renderTabs()}show(g.k);window.scrollTo({top:0,behavior:"smooth"})};body.append(go)}
     const m=modelView(g.list);if(m)body.append(m);
+    const mt=modelOf(g);
+    if(mt){const mm=el("div","model");mm.append(el("p","sect-h","예시 답안 (모범답변)"));const bt=el("p","better",mt);bt.hidden=true;
+      const sb=el("button","btn","예시 답안 보기");sb.type="button";sb.style.alignSelf="flex-start";sb.style.marginTop="6px";
+      sb.onclick=()=>{bt.hidden=!bt.hidden;sb.textContent=bt.hidden?"예시 답안 보기":"예시 답안 접기"};mm.append(sb,bt);body.append(mm)}
     g.list.forEach(a=>body.append(attView(a)));
     d.append(body);box.append(d);
   });
   renderPast();
 }
 /* 답변 정리: 문항별로 내가 한 답을 모두 펼쳐 보이고, 맨 아래에 고친 답 */
+const modelOf=g=>{const k=g.k;if(k>=0&&Q[k].m)return Q[k].m;const a=g.list.find(x=>x.model);return a?a.model:""};
+let sheetHide=store.get("iv_sheet_hide",false);
+function hideable(node,label){
+  if(!sheetHide)return node;
+  const w=el("div","sh-hide");const b=el("button","btn",label+" 보기");b.type="button";node.hidden=true;
+  b.onclick=()=>{node.hidden=!node.hidden;b.textContent=label+(node.hidden?" 보기":" 접기")};w.append(b,node);return w}
 function renderSheet(groups){
   const box=$("#noteList");box.innerHTML="";
   $("#noteEmpty").hidden=groups.length>0;
@@ -1443,7 +1458,10 @@ function renderSheet(groups){
   pr.onclick=()=>{document.body.classList.add("print-sheet");$("#noteBox").open=true;
     const done=()=>{document.body.classList.remove("print-sheet");window.removeEventListener("afterprint",done)};
     window.addEventListener("afterprint",done);try{window.print()}catch(e){done()}setTimeout(done,60000)};
-  bar.append(pr);box.append(bar);
+  const hd=el("button","btn",sheetHide?"모두 펼쳐 보기":"고친 답·예시 답안 가리고 복습");hd.type="button";
+  hd.onclick=()=>{sheetHide=!sheetHide;store.set("iv_sheet_hide",sheetHide);renderSheet(groups)};
+  const bs=el("span",null);bs.style.cssText="display:flex;gap:6px;flex-wrap:wrap";bs.append(hd,pr);
+  bar.append(bs);box.append(bar);
   const sheet=el("div","sheet");sheet.id="sheetView";
   const order=[...groups].sort((x,y)=>(x.k<0)-(y.k<0)||x.k-y.k);
   order.forEach((g,n)=>{
@@ -1469,7 +1487,14 @@ function renderSheet(groups){
       if(fixed.fixes&&fixed.fixes.length){const ul=el("ul","sh-fixes");fixed.fixes.forEach(f=>ul.append(el("li",null,f)));fx.append(ul)}
       fx.append(el("p","better",fixed.better));
     }else fx.append(el("p","hint","아직 고친 답이 없어요. 이 문항에서 빨간펜 채점을 받으면 여기에 고친 답이 생깁니다."));
-    card.append(fx);sheet.append(card);
+    if(fixed&&sheetHide){const inner=el("div");inner.style.cssText="display:flex;flex-direction:column;gap:6px";[...fx.childNodes].slice(1).forEach(n=>inner.append(n));fx.append(hideable(inner,"고친 답"))}
+    card.append(fx);
+    const mt=modelOf(g);
+    if(mt){const md=el("div","sh-model");md.append(el("p","sect-h","예시 답안 (모범답변)"));
+      const body=el("div");body.style.cssText="display:flex;flex-direction:column;gap:4px";
+      body.append(el("p","better",mt));if(mt.includes("[내 경험"))body.append(el("p","hint","[내 경험: …]은 계획서에 적은 실제 경험을 내 말로 채우는 자리입니다."));
+      md.append(hideable(body,"예시 답안"));card.append(md)}
+    sheet.append(card);
   });
   box.append(sheet);
 }
